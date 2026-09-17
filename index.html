@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tokota Breeding Records</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+:root {
+  --paper:#eef1f0; --surface:#fff; --sunk:#e3e8e7;
+  --ink:#0f1618; --muted:#5f6f72; --line:#cdd6d5;
+  --teal:#0c6c68; --ochre:#a85b2c; --slate:#4a5f6b;
+  --shadow:0 1px 2px rgba(15,22,24,.06), 0 8px 24px rgba(15,22,24,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:#0c1214; --surface:#131c1e; --sunk:#0a1012;
+    --ink:#dce4e3; --muted:#8ba0a2; --line:#243033;
+    --teal:#4fb3ac; --ochre:#d98a55; --slate:#8aa3b0;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  --paper:#0c1214; --surface:#131c1e; --sunk:#0a1012;
+  --ink:#dce4e3; --muted:#8ba0a2; --line:#243033;
+  --teal:#4fb3ac; --ochre:#d98a55; --slate:#8aa3b0;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Source Sans 3", system-ui, sans-serif; font-size:15px; line-height:1.55; }
+.wrap { max-width:960px; margin:0 auto; padding:0 20px 72px; }
+header { background:var(--surface); border-bottom:1px solid var(--line); }
+header .wrap { padding-top:26px; padding-bottom:20px; }
+h1 { font-family:Fraunces, Georgia, serif; font-size:29px; font-weight:600;
+     margin:0 0 5px; letter-spacing:-.01em; }
+.lede { color:var(--muted); max-width:66ch; margin:0 0 18px; }
+
+.tabs { display:flex; flex-wrap:wrap; margin-bottom:14px; }
+.tab { font:inherit; cursor:pointer; padding:8px 16px; background:none; color:var(--muted);
+       border:1px solid var(--line); border-right:0; }
+/* The row needs a closed edge on whichever tab is last on screen. The Test tab
+   is last in the markup but hidden except in test mode, which left "What's
+   covered" with no right-hand side at all. */
+.tab:last-child,
+.tab:nth-last-child(2):has(~ #t-test[hidden]) {
+  border-right:1px solid var(--line); border-radius:0 5px 5px 0; }
+.tab:first-child { border-radius:5px 0 0 5px; }
+.tab[aria-pressed="true"] { background:var(--teal); color:#fff; border-color:var(--teal);
+                            font-weight:600; }
+form { display:flex; gap:9px; flex-wrap:wrap; }
+input[type=search] { flex:1 1 300px; min-width:0; font:inherit; padding:10px 12px;
+  color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:5px; }
+input[type=search]:focus, button:focus-visible { outline:2px solid var(--teal); outline-offset:1px; }
+button.go { font:inherit; font-weight:600; padding:10px 20px; cursor:pointer;
+            background:var(--teal); color:#fff; border:0; border-radius:5px; }
+.hint { color:var(--muted); font-size:13px; margin:9px 0 0; }
+
+main { padding-top:24px; }
+h2 { font-family:Fraunces, Georgia, serif; font-size:19px; font-weight:600; margin:26px 0 4px; }
+h2:first-child { margin-top:0; }
+.count { color:var(--muted); font-size:13px; margin:0 0 12px; }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:8px;
+        padding:15px 17px; margin-bottom:11px; box-shadow:var(--shadow); }
+.card .top { display:flex; gap:9px; align-items:baseline; flex-wrap:wrap; margin-bottom:6px; }
+.who { font-weight:600; }
+.when, .where { color:var(--muted); font-size:13px; }
+.badge { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em;
+         padding:2px 8px; border-radius:3px; border:1px solid currentColor; }
+.badge.remaining, .badge.open { color:var(--teal); }
+.badge.used, .badge.settled { color:var(--muted); }
+.badge.unknown { color:var(--ochre); }
+.badge.abando { color:var(--slate); }
+.badge.tokotines { background:#8a4a6a; color:#fff; }
+.grant { color:var(--muted); font-size:14px; margin:0 0 9px; overflow-wrap:anywhere; }
+.chips { margin:0 0 7px; font-size:14px; overflow-wrap:anywhere; }
+.result { font-size:13px; color:var(--muted); background:var(--sunk); padding:7px 9px;
+          border-radius:5px; margin:0 0 9px; overflow-wrap:anywhere; }
+.scroller { overflow-x:auto; margin-bottom:6px; }
+table.k { border-collapse:collapse; width:100%; max-width:720px; }
+.k .subrow td { padding:0 0 4px 14px; border-top:0; }
+.k .subrow .spend { border-top:0; padding:3px 0; color:var(--muted); }
+.k th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.08em;
+        color:var(--muted); font-weight:600; padding:0 9px 5px 0; }
+.k td { padding:3px 9px 3px 0; border-top:1px solid var(--line); }
+.num { font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; }
+.k .left-0 { color:var(--muted); }
+.dim { color:var(--muted); }
+.k .left-y { color:var(--teal); font-weight:600; }
+.pups { display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 8px; }
+.pup { font-family:"IBM Plex Mono", monospace; font-size:12px; padding:2px 8px;
+       border-radius:3px; border:1px solid var(--line); }
+.pup.left { border-color:var(--teal); color:var(--teal); font-weight:600; }
+.pup.uploaded { color:var(--slate); }
+.pup.shrine, .pup.adoption, .pup.consumed { color:var(--muted); }
+.pup.transferred { color:var(--ochre); }
+.pup.void { color:var(--muted); font-style:italic; }
+.pup .became { color:var(--slate); }
+.pup .maybe { color:var(--muted); font-style:italic; }
+.pup .became.unsure { color:var(--muted); }
+a { color:var(--teal); }
+details { margin-top:7px; }
+summary { cursor:pointer; color:var(--muted); font-size:13px; }
+.spend { font-size:13px; padding:5px 0; border-top:1px solid var(--line); }
+.rep.nested { border-left:2px solid var(--line); padding-left:9px; }
+ul.diff { margin:6px 0 0; padding-left:18px; font-size:13px; }
+ul.diff li { margin:3px 0; }
+.warn { color:var(--ochre); font-size:13px; }
+.bad { color:#b3261e; font-size:13px; font-weight:600; }
+:root:not([data-theme="light"]) .bad { color:#f2b8b5; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .bad { color:#b3261e; } }
+:root[data-theme="dark"] .bad { color:#f2b8b5; }
+.holders { font-size:13px; color:var(--muted); margin:2px 0 0; }
+.prov { font-size:14px; margin:0 0 8px; }
+.prov strong { color:var(--ink); }
+
+/* Genos keep the line breaks they were rolled with, so they are tall and
+   narrow -- tiling them uses the width instead of one long column. */
+.genos {
+  margin-top:9px; border-top:1px solid var(--line); padding-top:9px;
+  display:grid; gap:9px;
+  grid-template-columns:repeat(auto-fill, minmax(215px, 1fr));
+}
+.geno {
+  font-size:13px; line-height:1.45; overflow-wrap:anywhere;
+  background:var(--sunk); border-radius:5px; padding:7px 9px;
+}
+.geno .ghead {
+  display:flex; justify-content:space-between; gap:8px;
+  margin-bottom:3px; padding-bottom:3px; border-bottom:1px solid var(--line);
+}
+.geno .gno { color:var(--teal); font-weight:600; }
+.geno .ghold { color:var(--muted); font-size:12px; }
+.geno .gbody { white-space:pre-wrap; }
+/* A retired pup is still worth reading -- it is how you tell which animal a
+   reply means -- but it should not compete with the ones still owed. */
+.geno.done { opacity:.6; }
+details.more { margin-top:9px; font-size:13px; }
+details.more > summary {
+  cursor:pointer; color:var(--muted); padding:3px 0; user-select:none;
+}
+details.more > summary:hover { color:var(--teal); }
+details.more[open] > summary { margin-bottom:7px; }
+.replies { display:grid; gap:7px; }
+.rep {
+  background:var(--sunk); border-radius:5px; padding:7px 9px;
+  font-size:13px; line-height:1.45; overflow-wrap:anywhere;
+}
+.rep .rhead { display:flex; gap:8px; margin-bottom:3px; color:var(--muted); font-size:12px; }
+.rep .rwho { color:var(--ink); font-weight:600; }
+/* The reply is quoted as written: the line breaks are how a litter division
+   is legible at all. */
+.rep .rbody { white-space:pre-wrap; }
+/* Spreadsheet view: a few hundred slots read as rows, not as cards. */
+.sheetwrap { overflow-x:auto; border:1px solid var(--line); border-radius:6px; margin:0 0 20px; }
+table.sheet { border-collapse:collapse; width:100%; font-size:13px; }
+table.sheet th, table.sheet td {
+  text-align:left; padding:6px 9px; border-bottom:1px solid var(--line);
+  vertical-align:top; white-space:nowrap;
+}
+table.sheet thead th {
+  position:sticky; top:0; z-index:1; background:var(--surface);
+  border-bottom:2px solid var(--line); font-weight:600;
+}
+table.sheet td.wrap { white-space:normal; min-width:24ch; max-width:52ch; }
+table.sheet td.num, table.sheet th.num { text-align:right; }
+table.sheet tbody tr:hover { background:var(--sunk); }
+table.sheet tr.migrated { opacity:.45; }
+table.sheet tr.migrated td.wrap { text-decoration:line-through; }
+table.sheet td.tick { text-align:center; }
+table.sheet td.tick input { cursor:pointer; }
+.sheetbar { display:flex; flex-wrap:wrap; gap:7px; align-items:center; margin:0 0 12px; }
+.sheetbar .grow { flex:1 1 auto; }
+.sheetbar .ticks { color:var(--muted); font-size:13px; }
+/* The comment link is the thing people came for -- it goes straight to the
+   comment, which the API cannot give us at all. The journal it sits in is
+   context, so it gets out of the way. */
+a.permalink {
+  color:var(--teal); font-size:14px; font-weight:600;
+  text-decoration:underline; text-underline-offset:2px;
+}
+a.permalink:hover { text-decoration-thickness:2px; }
+.where .injournal { font-size:11px; opacity:.75; }
+.where .injournal a { color:inherit; }
+details.more.usedon > summary { color:var(--teal); font-weight:600; }
+.badge.probably_used { background:var(--ochre); color:#fff; }
+.badge.returned { background:var(--sunk); color:var(--ink); border:1px solid var(--line); }
+.badge.void { background:#6b6b6b; color:#fff; font-size:11px; padding:1px 7px; }
+table.slots tr.voidrow td { opacity:.55; }
+table.slots tr.voidrow td:first-child { opacity:.8; }
+.badge.broken { background:#8a3b3b; color:#fff; }
+.build {
+  display:inline-block; vertical-align:middle; margin-left:10px;
+  font-size:15px; font-weight:700; letter-spacing:.02em;
+  padding:3px 10px; border-radius:13px;
+  background:var(--teal); color:#fff;
+}
+.empty { color:var(--muted); padding:26px 0; }
+.loading { color:var(--muted); padding:26px 0; }
+footer { border-top:1px solid var(--line); margin-top:44px; }
+footer .wrap { padding-top:18px; }
+.note { color:var(--muted); font-size:13px; max-width:74ch; margin:0 0 9px; }
+mark { background:var(--sunk); color:inherit; font-weight:600; }
+
+.cats { display:flex; flex-wrap:wrap; gap:7px; margin:0 0 20px; }
+.cat {
+  font:inherit; font-size:13px; cursor:pointer; padding:5px 11px; border-radius:14px;
+  background:var(--surface); color:var(--muted); border:1px solid var(--line);
+}
+.cat[aria-pressed="true"] { background:var(--teal); color:#fff; border-color:var(--teal); }
+.cat[disabled] {
+  opacity:.5; cursor:not-allowed; border-style:dashed;
+  background:transparent; text-decoration:line-through;
+}
+.cat .n { font-family:"IBM Plex Mono", monospace; opacity:.75; margin-left:3px; }
+.cat.open-only { margin-left:auto; border-style:dashed; }
+.cat.open-only[aria-pressed="true"] { border-style:solid; }
+.cat:focus-visible { outline:2px solid var(--teal); outline-offset:2px; }
+
+/* Journal is the organising unit: one block per thread, categories inside it. */
+h1.tokota-head {
+  font-size:22px; margin:30px 0 4px; padding-bottom:6px;
+  border-bottom:2px solid var(--teal);
+}
+h1.tokota-head:first-child { margin-top:0; }
+/* One heading per kind of thing, now that the cards link to their own
+   comments and there is no reason to sort a person's records into journals. */
+h2.kind {
+  font-family:"Source Sans 3", sans-serif; font-size:12px; font-weight:600;
+  text-transform:uppercase; letter-spacing:.09em; color:var(--muted);
+  margin:26px 0 9px; padding-bottom:6px; border-bottom:2px solid var(--line);
+}
+h2.kind:first-of-type { margin-top:4px; }
+h2.kind .count { display:inline; margin:0 0 0 5px; }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Tokota Breeding Records <span class="build" id="build">v?</span></h1>
+  <p class="lede">Slots, breedings and genos, read from the comments on TokoTime&rsquo;s
+  DeviantArt request journals. Look up a person or a tokota.</p>
+
+  <div class="tabs" role="group" aria-label="What to look up">
+    <button class="tab" id="t-person" aria-pressed="true">Person</button>
+    <button class="tab" id="t-tokota" aria-pressed="false">Tokota</button>
+    <button class="tab" id="t-owner" aria-pressed="false">Owner</button>
+    <button class="tab" id="t-link" aria-pressed="false">By link</button>
+    <button class="tab" id="t-covers" aria-pressed="false">What's covered</button>
+    <button class="tab" id="t-test" aria-pressed="false" hidden>Test</button>
+  </div>
+  <form id="f">
+    <input type="search" id="q" autocomplete="off" placeholder="DeviantArt username, e.g. FlickaBee">
+    <button class="go" type="submit">Look up</button>
+  </form>
+  <p class="hint" id="hint">Slots they granted or received, plus their breedings and any genos still owed.</p>
+</div></header>
+
+<main class="wrap" id="out"></main>
+
+<footer><div class="wrap">
+  <p class="note">2015 male slots are marked as <strong>VOID</strong> as these were written
+  when males had unlimited slots.</p>
+
+  <p class="note">Slots or genos on broken journals are marked as <strong>BROKEN</strong>
+  and cannot be used.</p>
+
+  <p class="note">Some slot permissions are marked as &ldquo;<strong>Unclear</strong>&rdquo;.
+  This is in cases where the script can&rsquo;t be certain whether the slot was used or not,
+  please use your own judgement.</p>
+
+  <p class="note" id="built"></p>
+</div></footer>
+
+<script>
+let D = null, mode = "person";
+// Geno descriptions arrive after the first paint: they are only needed once a
+// card is on screen, and they are a third of the payload.
+let GENOS = null, REPLIES = null, CITES = null;
+// The card text and the shrine links travel in the lazy payload: 41 MB that
+// nobody reads until a card is drawn, and the eager file has a hard ceiling.
+// Until they land the cards draw without them and redraw when they arrive.
+let TEXTS = null, SHRINE = null;
+function textOf(where, index) {
+  return ((TEXTS || {})[where] || {})[String(index)] || "";
+}
+const out = document.getElementById("out");
+const qEl = document.getElementById("q");
+const hint = document.getElementById("hint");
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+
+const MODES = {
+  person: { placeholder: "DeviantArt username, e.g. FlickaBee",
+            hint: "Slots they granted or received, plus their breedings and any genos still owed." },
+  tokota: { placeholder: "Tokota ids, comma separated, e.g. 44808, 51969, WM90",
+            hint: "Slots promised against these tokotas, and every breeding they appear in. Wild codes work." },
+  owner:  { placeholder: "A username \u2014 whose tokotas?",
+            hint: "Every slot written against a tokota this person owns now, "
+                + "by the registry rather than by what the comment said." },
+  link:   { placeholder: "Paste a DeviantArt comment link, or its number",
+            hint: "Finds the record a comment is, or the records it is part of — "
+                + "for checking one awkward case without hunting for it." },
+  covers: { placeholder: "Filter journals by name (optional)",
+            hint: "Every journal in the archive, and how complete each one is." },
+  test:   { placeholder: "Filter by text or author (optional)",
+            hint: "Every permission and breeding in this build, for reading over." },
+};
+
+function setMode(next) {
+  mode = next;
+  for (const key of Object.keys(MODES)) {
+    document.getElementById("t-" + key).setAttribute("aria-pressed", String(key === next));
+  }
+  qEl.placeholder = MODES[next].placeholder;
+  hint.textContent = MODES[next].hint;
+  // A username typed for the Person tab would silently filter every journal out
+  // of the coverage list, so each tab starts from an empty box.
+  qEl.value = "";
+  qEl.focus();
+}
+for (const key of Object.keys(MODES)) {
+  document.getElementById("t-" + key).onclick = () => { setMode(key); render(); };
+}
+
+// A wild is written as a letter code on DeviantArt (WM90) but tokotna knows it
+// by a number, so the link has to go through the alias table or it 404s.
+function tokotaUrl(id) {
+  const wild = /[A-Za-z]/.test(id);
+  const numeric = wild ? D.aliases[String(id).toUpperCase()] : id;
+  return numeric
+    ? "https://tokotna.com/imports/index.php?id=" + encodeURIComponent(numeric) : "";
+}
+
+function tokotaLink(id) {
+  const wild = /[A-Za-z]/.test(id);
+  const numeric = wild ? D.aliases[id.toUpperCase()] : id;
+  const label = '<span class="num">' + esc(id) + "</span>";
+  if (!numeric) return label;
+  return '<a class="num" href="https://tokotna.com/imports/index.php?id=' +
+    encodeURIComponent(numeric) + '" target="_blank" rel="noopener">' + esc(id) + "</a>";
+}
+
+// Harvested comments carry a real address. The API never returned one, which is
+// why everything used to be grouped by journal and searched by eye.
+// Comment addresses travel without their prefix. Every one of the 168,000 of
+// them began "https://www.deviantart.com/comments/", which came to 10 MB of the
+// payload saying the same thing over and over; the tail, "1/632889004/4221440664",
+// is the part that differs. Nothing is lost -- the address is rebuilt here.
+const COMMENT_BASE = "https://www.deviantart.com/comments/";
+
+function commentUrl(tail) {
+  if (!tail) return "";
+  return /^https?:/i.test(tail) ? tail : COMMENT_BASE + tail;
+}
+
+function commentLink(url, label) {
+  if (!url) return "";
+  return '<a class="permalink" href="' + esc(commentUrl(url)) +
+    '" target="_blank" rel="noopener">' + (label || "open comment") + "</a>";
+}
+
+// A journal at DeviantArt's comment limit is closed to everybody -- no member
+// and no admin can post in it again. A permission sitting there with slots
+// unspent is a record of what happened, not something anyone can act on, and
+// the page has to say so or it reads as an invitation.
+// The comment link leads, because it is the one thing that lands on the exact
+// comment; the journal is only where to look if it does not. Where there is no
+// comment link -- API-scanned journals, which never had one -- the journal
+// carries the weight instead and stays full size.
+function whereLine(threadIndex, tail) {
+  if (!tail) return '<span class="where">' + threadLink(threadIndex) + "</span>";
+  return '<span class="where">' + commentLink(tail) +
+    ' <span class="injournal">in ' + threadLink(threadIndex) + "</span></span>";
+}
+
+function threadStanding(i) {
+  const th = D.threads[i] || {};
+  if (th.hs === "historical") {
+    return '<span class="badge broken" title="Broken journal: it hit DeviantArt&rsquo;s ' +
+      '10,000-comment limit, so nobody can post in it again — not members, not ' +
+      'admins. Nothing here can be claimed, answered or corrected, whatever it ' +
+      'says.">broken</span>';
+  }
+  return "";
+}
+
+function threadLink(i) {
+  const th = D.threads[i] || {};
+  return th.u ? '<a href="' + esc(th.u) + '" target="_blank" rel="noopener">' + esc(th.t) + "</a>"
+              : esc(th.t || "");
+}
+
+function expand(token) {
+  const raw = token.trim().toUpperCase();
+  if (!raw) return [];
+  const ids = new Set([raw]);
+  if (D.aliases[raw]) ids.add(String(D.aliases[raw]).toUpperCase());
+  // The oldest sheets put the sex in front of the number -- "Tokota F8858" is
+  // animal 8858 -- and the archive stores the number. Somebody reading an old
+  // sheet types what it says, so both spellings have to find the animal. The
+  // records were taught this and the search box was not.
+  const sexed = /^[FM](\d{2,6})$/.exec(raw);
+  if (sexed) ids.add(sexed[1]);
+  if (/^\d{2,6}$/.test(raw)) { ids.add("F" + raw); ids.add("M" + raw); }
+  return [...ids];
+}
+
+// The name to show for an animal, whichever spelling was typed or stored. An
+// animal has one sex and one number, and the letter in front of it is a habit
+// of the oldest sheets rather than part of its name -- so "F234" and "M234" are
+// both Tokota 234, and showing all three is showing one animal three times.
+function canonicalId(token) {
+  const raw = String(token || "").trim().toUpperCase();
+  const sexed = /^[FM](\d{2,6})$/.exec(raw);
+  return sexed ? sexed[1] : raw;
+}
+
+// ---- the registry ----------------------------------------------------------
+//
+// The archive says what a journal said at the time. The registry says who owns
+// an animal now and whether it is male, which is what "slots written to tokotas
+// I own" needs -- the comments almost never name an owner.
+function regOf(id) {
+  return (D.reg || {})[String(id).toUpperCase()] || null;
+}
+
+function ownerOf(id) {
+  const r = regOf(id);
+  return r && r[0] ? r[0] : "";
+}
+
+function isMale(id) {
+  const r = regOf(id);
+  return !!r && r[1] === "m";
+}
+
+// A slot written against a male in 2015 cannot be spent: males had unlimited
+// slots then, so writing one out meant nothing. It is a property of the animal,
+// not of the permission -- one comment can grant slots to a male and a female at
+// once, and only the male half is void.
+function isVoidFor(perm, tokotaId) {
+  return (perm.d || "").slice(0, 4) === "2015" && isMale(tokotaId);
+}
+
+// True only when every tokota on the permission is void, which is when the
+// permission as a whole has nothing spendable in it.
+function isVoid(perm) {
+  if ((perm.d || "").slice(0, 4) !== "2015") return false;
+  const ids = [...new Set([...(perm.k || []).map(k => String(k[0])),
+                           ...(perm.tk || []).map(String)])];
+  return ids.length > 0 && ids.every(isMale);
+}
+
+// Slots left, not counting any that were never spendable.
+function liveLeft(perm) {
+  const lines = perm.k || [];
+  if (!lines.length) return perm.l;
+  return lines.reduce((n, k) => n + (isVoidFor(perm, k[0]) ? 0 : (k[3] || 0)), 0);
+}
+
+// Every tokota this person holds, by the registry rather than by the comments.
+function tokotasOwnedBy(name) {
+  return (D.owns || {})[String(name).toLowerCase()] || [];
+}
+
+// Permissions written against anything they own -- which is a different
+// question from the slots written *to* them, and the one people actually ask
+// when they want to know what is outstanding on their own animals.
+function permsOnOwnedTokotas(name) {
+  const mine = new Set(tokotasOwnedBy(name));
+  if (!mine.size) return [];
+  const out = new Set();
+  for (const id of mine) {
+    for (const ix of (D.byTokota[id] || [])) out.add(ix);
+    const alias = D.aliases[id];
+    if (alias) for (const ix of (D.byTokota[String(alias).toUpperCase()] || [])) out.add(ix);
+  }
+  return [...out];
+}
+
+// ---- slot permissions ------------------------------------------------------
+
+// The other direction: breedings whose quoted approval link lands in this
+// journal, on a tokota only this permission covers. That makes the pair
+// unambiguous -- but it is still inference, so it is labelled as a match rather
+// than presented as a record, and only unambiguous ones are shown at all.
+function spentOn(i) {
+  // Every comment that quotes this permission on its "Owner approval" line.
+  // The form has always asked for that link, so this is usually the record of
+  // where the slot actually went -- and it is a fact off the page rather than
+  // anything inferred here.
+  const rows = CITES ? ((D.citedBy || {})[String(i)] || []) : [];
+  if (!rows.length) return "";
+  const open = rows.length <= 3 ? " open" : "";
+  const label = "Used on " + rows.length + " breeding" + (rows.length === 1 ? "" : "s");
+  return '<details class="more usedon"' + open + '><summary>' + label +
+    '</summary><div class="replies">' + rows.map(ix => {
+      const c = (CITES || [])[ix];
+      if (!c) return "";
+      // A request that was never rolled still spent the slot; say so rather
+      // than leave it looking like an ordinary breeding.
+      const kind = c[5]
+        ? ' <span class="num" title="An admin replied telling them to repost to the ' +
+          'corrections thread, and no litter was posted under it here">' +
+          "sent to corrections</span>"
+        : c[3] && c[3] !== "breeding"
+        ? ' <span class="num" title="This comment quotes the permission but was ' +
+          'not parsed as a rolled breeding">' + esc(c[3]) + "</span>" : "";
+      return '<div class="rep"><div class="rhead"><span class="rwho">' +
+        esc(D.users[c[0]] || "?") + '</span><span class="num">' + esc(c[1]) + "</span>" +
+        kind + (c[2] ? "<span>" + commentLink(c[2], "comment") + "</span>" : "") +
+        "</div><div class=\"rbody\">" + esc(c[4] || "") + "</div></div>";
+    }).join("") + "</div></details>";
+}
+
+function replyLine(s) {
+  return '<div class="spend"><span class="num when">' + esc(s[1]) + "</span> <strong>" +
+    esc(D.users[s[0]]) + "</strong> &middot; " + esc(s[3]) + "</div>";
+}
+
+// Where this tokota's slots went, one link per use. A permission covering
+// several animals lists each one's uses against its own row rather than piling
+// every breeding under the whole permission.
+function usedOnCell(permIndex, tokotaId) {
+  const rows = (D.citedFor || {})[permIndex + "|" + String(tokotaId).toUpperCase()] || [];
+  if (!rows.length) return '<span class="when">&mdash;</span>';
+  // The citations arrive in the second file. Say so rather than showing a dash,
+  // which would read as "nothing used this".
+  if (!CITES) {
+    return '<span class="when" title="Still loading">' + rows.length + " use" +
+      (rows.length === 1 ? "" : "s") + "&hellip;</span>";
+  }
+  return rows.map((spot, n) => {
+    const c = (CITES || [])[spot];
+    if (!c) return "";
+    const label = (c[5] ? "Corrections "
+      : c[3] === "shrine" ? "Shrine "
+      : c[3] === "breeding" ? "Breeding " : "Comment ") + (n + 1);
+    const cell = c[2] ? commentLink(c[2], label) : '<span class="when">' + label + "</span>";
+    return c[5]
+      ? '<span title="An admin sent this one to the corrections thread; no litter ' +
+        'was posted under it here">' + cell + "</span>"
+      : cell;
+  }).filter(Boolean).join(", ");
+}
+
+// A grant reposted for a later month. Which of the grant and its reposts spent
+// what is a judgement from the comment trail, so the trail is what gets shown
+// -- and the badge stays unclear rather than picking an answer.
+function renewalTrail(p) {
+  const rows = p.rw || [];
+  if (!rows.length) return "";
+  const links = rows.map(r => {
+    const who = r[1] != null ? D.users[r[1]] : "?";
+    const label = esc(who) + (r[2] ? " " + esc(r[2]) : "");
+    return r[0] ? commentLink(r[0], label) : '<span class="when">' + label + "</span>";
+  }).join(", ");
+  return '<p class="note">Reposted for a later month by ' + links +
+    ". A slot may have been spent under the repost rather than here, so this " +
+    "one is left unclear &mdash; follow the comments to see which.</p>";
+}
+
+// Breedings that very probably spent this grant but can no longer be read: the
+// request and its roll were hidden by an admin, and only their authors and
+// times survive. What ties them here is that the same admin replied on this
+// grant and under the request within minutes -- marking the slot and rolling
+// the litter in one sitting. Shown as evidence for a reader to weigh; the
+// grant's status is left as its readable comments say.
+function hiddenSpends(p) {
+  const rows = p.hb || [];
+  if (!rows.length) return "";
+  const items = rows.map(r => {
+    const who = r[1] != null ? D.users[r[1]] : "?";
+    const admin = r[2] != null ? D.users[r[2]] : "an admin";
+    const minutes = r[4] < 1 ? "under a minute" : Math.round(r[4]) + " min";
+    const firm = r[6] > 2
+      ? " <span class=\"warn\">(possibly: " + esc(admin) + " marked " + r[6] +
+        " of " + esc(who) + "&rsquo;s grants in that sitting, and a breeding " +
+        "spends at most two)</span>"
+      : "";
+    const pups = r[5]
+      ? " &middot; " + r[5] + " pup" + (r[5] === 1 ? "" : "s") +
+        " later given away in replies still visible"
+      : "";
+    return "<li>" + (r[0] ? commentLink(r[0], "hidden request by " + esc(who))
+                          : "hidden request by " + esc(who)) +
+      (r[3] ? " on " + esc(r[3]) : "") + " &middot; " + esc(admin) +
+      " replied here and under it " + minutes + " apart" + pups + firm + "</li>";
+  }).join("");
+  return '<div class="note"><strong>Evidence of use from hidden breedings.</strong> ' +
+    "These requests and their rolls were hidden, so nothing in them can be read, " +
+    "but the timing ties them to this grant:<ul>" + items + "</ul></div>";
+}
+
+function permCard(i, highlight) {
+  const p = D.perms[i];
+  const to = (p.r || []).map(r => esc(D.users[r])).join(", ");
+  // A reply that names a tokota is shown under that tokota's own row: reading
+  // straight down a line then tells you what was said about it.
+  const placed = new Set();
+  const rows = (p.k || []).map(k => {
+    const on = highlight && highlight.has(String(k[0]).toUpperCase());
+    const dead = isVoidFor(p, k[0]);
+    const id = String(k[0]).toUpperCase();
+    const mine = (p.p || []).map((s, n) => [s, n]).filter(([s]) =>
+      (s[2] || []).some(t => String(t).toUpperCase() === id));
+    mine.forEach(([, n]) => placed.add(n));
+    return "<tr" + (dead ? ' class="voidrow"' : on ? ' style="background:var(--sunk)"' : "") + ">" +
+      "<td>" + tokotaLink(k[0]) +
+        (dead ? ' <span class="badge void" title="Written in 2015 against a male, '
+              + 'when males had unlimited slots. This was never spendable.">void</span>' : "") +
+        (k[4] ? ' <span class="badge returned" title="' + k[4] + " slot" +
+                (k[4] === 1 ? " was" : "s were") +
+                ' handed back to the owner unspent.">returned</span>' : "") +
+      "</td>" +
+      '<td class="num">' + k[1] + "</td><td class=\"num\">" + k[2] + "</td>" +
+      (dead
+        ? '<td class="num left-0">&mdash;</td>'
+        : '<td class="num ' + (k[3] > 0 ? "left-y" : "left-0") + '">' + k[3] + "</td>") +
+      "<td>" + usedOnCell(i, k[0]) + "</td>" +
+      "</tr>" +
+      (mine.length
+        ? '<tr class="subrow"><td colspan="5">' +
+          mine.map(([s]) => replyLine(s)).join("") + "</td></tr>"
+        : "");
+  }).join("");
+  // Whatever named no tokota stays below, where it can still be read.
+  const loose = (p.p || []).filter((s, n) => !placed.has(n));
+  const spends = loose.map(replyLine).join("");
+
+  // Chips for every tokota the permission names, so they are visible whichever
+  // way you arrived -- by owner, by tokota, or from a journal block.
+  const chips = (p.tk || []).map(k => {
+    const on = highlight && highlight.has(String(k).toUpperCase());
+    return on ? "<mark>" + tokotaLink(k) + "</mark>" : tokotaLink(k);
+  }).join(", ");
+  return '<div class="card"><div class="top">' +
+    (isVoid(p)
+      ? '<span class="badge void" title="Written in 2015 against a male, which ' +
+        'could not be bred then. The slot was never spendable.">void</span>'
+      : '<span class="badge ' + p.s + '">' +
+        (p.s === "remaining"
+         ? (liveLeft(p) > 0
+             ? liveLeft(p) + " slot" + (liveLeft(p) === 1 ? "" : "s") + " left"
+             : "nothing spendable left")
+         : p.s === "used" ? "fully used"
+         : p.s === "probably_used" ? "probably used"
+         : "unclear") + "</span>") +
+    ((p.k || []).some(k => k[4])
+      ? '<span class="badge returned" title="A slot on this permission was handed ' +
+        'back to the owner unspent.">returned</span>' : "") +
+    threadStanding(p.t) +
+    '<span class="who">' + esc(D.users[p.a]) + "</span>" +
+    (to ? '<span class="when">to ' + to + "</span>" : "") +
+    '<span class="when num">' + esc(p.d) + "</span>" +
+    whereLine(p.t, p.cu) + "</div>" +
+    (chips ? '<p class="chips">' + chips + "</p>" : "") +
+    '<p class="grant">' + esc(textOf("p", i)) + "</p>" +
+    (rows ? '<div class="scroller"><table class="k"><thead>' +
+            "<tr><th>Tokota</th><th>Granted</th><th>Used</th>" +
+            "<th>Left</th><th>Used on</th></tr></thead><tbody>" + rows +
+            "</tbody></table></div>" : "") +
+    renewalTrail(p) +
+    hiddenSpends(p) +
+    (p.n ? '<p class="warn">' + p.n + " spend(s) here name no tokota, so these may be low.</p>" : "") +
+    (spends ? "<details><summary>" + p.p.length + " repl" + (p.p.length === 1 ? "y" : "ies") +
+              "</summary>" + spends + "</details>" : "") + spentOn(i) + "</div>";
+}
+
+// ---- breedings and genos ---------------------------------------------------
+
+// Whoever is being looked up. A litter with one live geno is only "open" for
+// the person who actually holds that geno -- for everybody else in the split it
+// is finished, and saying otherwise sends them chasing an animal that is not
+// theirs.
+let viewer = null;
+
+function genoTile(b, p, texts) {
+  const holder = p[2] != null ? D.users[p[2]] : D.users[b.a];
+  const live = p[1] === "held";
+  return '<div class="geno ' + (live ? "live" : "done") + '">' +
+    '<div class="ghead"><span class="gno num">#' + p[0] + "</span>" +
+    '<span class="ghold">' + esc(live ? holder : p[1]) + "</span></div>" +
+    '<div class="gbody">' + esc(texts[String(p[0])] || "") + "</div></div>";
+}
+
+// A geno somebody was handed out of a litter they had no part in. What they
+// want is the animal they own and a way back to the roll it came from; the
+// other seven pups in that litter are somebody else's business, and a full
+// litter card buries the one line that is theirs.
+function genoCard(index) {
+  const b = D.breedings[index];
+  // null until the genotypes finish loading, which is a different thing from
+  // "this pup has no roll" and must not be written up as one.
+  const texts = GENOS ? (GENOS[String(index)] || {}) : null;
+  const lower = (viewer || "").toLowerCase();
+  const mine = (b.p || []).filter(p => p[2] != null &&
+    (D.users[p[2]] || "").toLowerCase() === lower);
+  const pups = mine.length ? mine : (b.p || []).filter(p => p[1] === "held");
+  const live = pups.filter(p => p[1] === "held").length;
+  const parents = (b.k || []).map(tokotaLink).join(" &times; ");
+  const tiles = pups.map(p =>
+    '<div class="geno ' + (p[1] === "held" ? "live" : "done") + '">' +
+    '<div class="ghead"><span class="gno num">#' + p[0] + "</span>" +
+    '<span class="ghold">' + esc(p[1] === "held" ? "held by " + (viewer || "?") : p[1]) +
+    "</span></div>" +
+    (texts === null ? ""
+      : texts[String(p[0])]
+      ? '<div class="gbody">' + esc(texts[String(p[0])]) + "</div>"
+      : '<div class="gbody dim">The roll for this pup is not in the archive.</div>') +
+    "</div>").join("");
+  return '<div class="card"><div class="top">' +
+    '<span class="badge ' + (live ? "open" : "settled") + '">' +
+    pups.length + " geno" + (pups.length === 1 ? "" : "s") + " from this litter</span>" +
+    threadStanding(b.t) +
+    '<span class="when">bred by</span><span class="who">' + esc(D.users[b.a]) + "</span>" +
+    '<span class="when num">' + esc(b.d) + "</span>" +
+    whereLine(b.t, b.cu) + "</div>" +
+    (parents ? '<p class="chips">' + parents + "</p>" : "") +
+    (tiles ? '<div class="genos">' + tiles + "</div>" : "") +
+    '<p class="note">Out of a litter of ' + (b.n || "?") +
+    ". Open the breeding comment above for the rest of it.</p></div>";
+}
+
+// The genotypes as they were rolled, newlines and all. The ones still owed are
+// open on the card; the retired ones are one click away rather than gone,
+// because identifying an animal from an old reply needs its genotype too.
+function genoBlock(b, index) {
+  if (!GENOS) return "";
+  const texts = GENOS[String(index)];
+  if (!texts) return "";
+  const all = (b.p || []).filter(p => texts[String(p[0])]);
+  if (!all.length) return "";
+  // Only the pups still owed. A settled one's genotype is not shipped: it is
+  // finished with, and it was crowding out the ones that are not.
+  const live = all.filter(p => p[1] === "held");
+  if (!live.length) return "";
+  return '<div class="genos">' + live.map(p => genoTile(b, p, texts)).join("") + "</div>";
+}
+
+// Every reply under the litter roll, quoted in full. Where a pup has been
+// argued over -- and they often are -- this is the only record of what was
+// actually agreed.
+function repliesBlock(index) {
+  if (!REPLIES) return "";
+  const rows = REPLIES[String(index)];
+  if (!rows || !rows.length) return "";
+  // Indented by how deep it sits, because a reply to a reply is often where a
+  // pup actually went -- somebody claims two, then answers themselves to pass
+  // one on -- and read flat it looks like a second answer to the litter.
+  return '<details class="more"><summary>' + rows.length + " repl" +
+    (rows.length === 1 ? "y" : "ies") + " on this litter</summary>" +
+    '<div class="replies">' + rows.map(r => {
+      const depth = Math.min(r[3] || 0, 4);
+      return '<div class="rep' + (depth ? " nested" : "") + '"' +
+        (depth ? ' style="margin-left:' + depth * 16 + 'px"' : "") +
+        '><div class="rhead"><span class="rwho">' +
+        esc(r[0] != null ? D.users[r[0]] : "?") + "</span>" +
+        '<span class="num">' + esc(r[1]) + "</span>" +
+        (depth ? ' <span class="when">reply to the comment above</span>' : "") +
+        "</div>" +
+        '<div class="rbody">' + esc(r[2]) + "</div></div>";
+    }).join("") + "</div></details>";
+}
+
+// A breeding request quotes the permission it spends, as a real DeviantArt
+// comment URL. The API will not give us those for our own records, so this is
+// the one place a reader can step straight through to an approval.
+function approvalLinks(b) {
+  const paths = b.ap || [];
+  if (!paths.length) return "";
+  return '<p class="grant">Owner approval: ' + paths.map((path, n) =>
+    '<a href="https://www.deviantart.com/comments/' + esc(path) +
+    '" target="_blank" rel="noopener">comment' +
+    (paths.length > 1 ? " " + (n + 1) : "") + "</a>").join(", ") + "</p>";
+}
+
+// Where a geno went when somebody parted with it: offered to Aippaq's Shrine,
+// or sacrificed to Gaskin's Graveyard or his laboratory machine. The comment
+// quotes the genotype and links back to the roll, which is how the two are
+// paired -- so these stop being dead ends and become somewhere to go.
+const GAVE_IT = {
+  shrine: ["shrined", "Offered to the shrine"],
+  graveyard: ["graveyard", "Sacrificed to Gaskin's Graveyard"],
+  machine: ["machine", "Given to Gaskin's machine"],
+};
+
+// ---- what changed since an earlier build -----------------------------------
+//
+// The parsers move daily and a tokota's page moves with them. "Four breedings
+// yesterday, seven today" deserves an answer better than "trust me": each build
+// records the comment ids it has for every tokota, so two builds can be compared
+// and the answer is the three comments that appeared, by name.
+let HISTORY = null;          // {versions: [12, 11, ...]}
+const SNAPSHOTS = new Map(); // version -> {t: {tokota: {b, p, g}}}
+
+function loadHistory() {
+  if (HISTORY) return Promise.resolve(HISTORY);
+  return fetch("history/index.json").then(r => r.json()).then(data => {
+    HISTORY = data;
+    return data;
+  }).catch(() => (HISTORY = { versions: [] }));
+}
+
+function loadSnapshot(version) {
+  if (SNAPSHOTS.has(version)) return Promise.resolve(SNAPSHOTS.get(version));
+  return fetch("history/v" + version + ".json").then(r => r.json()).then(data => {
+    SNAPSHOTS.set(version, data);
+    return data;
+  }).catch(() => null);
+}
+
+let diffAgainst = null;
+
+function diffControls(ids) {
+  const versions = (HISTORY && HISTORY.versions || []).filter(v => v !== D.v);
+  if (!versions.length) return "";
+  return '<div class="sheetbar"><span class="ticks">This is v' + esc(D.v) +
+    "</span>" +
+    versions.slice(0, 6).map(v =>
+      '<button class="cat" data-diff="' + v + '" aria-pressed="' +
+      (diffAgainst === v) + '">Diff from v' + v + "</button>").join("") +
+    (diffAgainst ? '<button class="cat" data-diff="off">Clear</button>' : "") +
+    "</div>";
+}
+
+// What changed for these tokotas between the build on the page and an older one.
+function diffBlock(ids) {
+  if (!diffAgainst) return "";
+  const older = SNAPSHOTS.get(diffAgainst);
+  if (!older) return '<p class="note">Loading v' + esc(diffAgainst) + "&hellip;</p>";
+  const rows = [];
+  const unchanged = [];
+  // One line per animal, not one per spelling of its name: "Tokota 234",
+  // "Tokota F234" and "Tokota M234" were three lines about the same tokota,
+  // each saying nothing changed.
+  for (const id of [...new Set(ids.map(canonicalId))]) {
+    const key = canonicalId(id);
+    const was = (older.t || {})[key] || {};
+    const now = { b: [], p: [], g: 0 };
+    // Gathered across every spelling, because the payload is indexed by what
+    // each comment actually wrote.
+    for (const spelling of expand(key)) {
+      for (const i of D.byBreedTokota[spelling] || []) {
+        if (D.breedings[i] && D.breedings[i].id) now.b.push(D.breedings[i].id);
+      }
+      for (const i of D.byTokota[spelling] || []) {
+        if (D.perms[i] && D.perms[i].id) now.p.push(D.perms[i].id);
+      }
+    }
+    now.b = [...new Set(now.b)];
+    now.p = [...new Set(now.p)];
+    const added = {}, gone = {};
+    for (const kind of ["b", "p"]) {
+      const before = new Set(was[kind] || []);
+      const after = new Set(now[kind] || []);
+      added[kind] = [...after].filter(x => !before.has(x));
+      gone[kind] = [...before].filter(x => !after.has(x));
+    }
+    if (!added.b.length && !added.p.length && !gone.b.length && !gone.p.length) {
+      unchanged.push(key);
+      continue;
+    }
+    const bits = [];
+    const name = { b: "breeding", p: "permission" };
+    for (const kind of ["b", "p"]) {
+      if (added[kind].length) {
+        bits.push("<strong>+" + added[kind].length + " " + name[kind] +
+          (added[kind].length === 1 ? "" : "s") + "</strong> " +
+          added[kind].slice(0, 6).map(cid =>
+            commentLink(cid, cid.slice(-6))).join(" "));
+      }
+      if (gone[kind].length) {
+        bits.push("<strong>&minus;" + gone[kind].length + " " + name[kind] +
+          (gone[kind].length === 1 ? "" : "s") + "</strong> " +
+          gone[kind].slice(0, 6).map(cid => '<span class="num">' +
+            esc(cid.slice(-6)) + "</span>").join(" "));
+      }
+    }
+    rows.push("<li>Tokota " + esc(key) + ": " + bits.join(" &middot; ") + "</li>");
+  }
+  // Said once at the end rather than once per animal: an owner with two hundred
+  // tokotas wants the handful that moved, not two hundred lines of "nothing".
+  if (unchanged.length) {
+    rows.push("<li>" + (rows.length ? "" : "Nothing changed. ") +
+      (unchanged.length === 1 ? "Tokota " + esc(unchanged[0]) + " is unchanged"
+        : unchanged.length + " tokotas unchanged") + "</li>");
+  }
+  return '<div class="result"><strong>Since v' + esc(diffAgainst) +
+    "</strong><ul class=\"diff\">" + rows.join("") + "</ul>" +
+    '<p class="note">A record that went away was usually re-read as something ' +
+    "else, not lost. The numbers here are comment ids &mdash; the last six " +
+    "digits, linked.</p></div>";
+}
+
+// The same question asked about a person rather than an animal: "has anything
+// of mine changed since the last build". A person is the scope most readers are
+// working in -- their own breedings, the slots written to them -- and answering
+// it from the tokota snapshot would mean knowing every animal they have ever
+// touched first.
+function diffPeople(names) {
+  if (!diffAgainst) return "";
+  const older = SNAPSHOTS.get(diffAgainst);
+  if (!older) return '<p class="note">Loading v' + esc(diffAgainst) + "&hellip;</p>";
+  const rows = [];
+  for (const name of names) {
+    const key = String(name).toLowerCase();
+    const was = (older.u || {})[key] || {};
+    const now = { b: [], p: [] };
+    const mine = D.byBreeder[key] || {};
+    for (const i of [...(mine.o || []), ...(mine.s || [])]) {
+      if (D.breedings[i] && D.breedings[i].id) now.b.push(D.breedings[i].id);
+    }
+    // Written to them, and written by them: "g" is the granter's own column.
+    const slots = D.byUser[key] || {};
+    for (const i of [...(slots.r || []), ...(slots.g || [])]) {
+      if (D.perms[i] && D.perms[i].id) now.p.push(D.perms[i].id);
+    }
+    now.b = [...new Set(now.b)];
+    now.p = [...new Set(now.p)];
+    const before = { b: new Set(was.b || []),
+                     p: new Set([...(was.p || []), ...(was.w || [])]) };
+    const bits = [];
+    const label = { b: "breeding", p: "permission" };
+    for (const kind of ["b", "p"]) {
+      const added = now[kind].filter(x => !before[kind].has(x));
+      const gone = [...before[kind]].filter(x => !now[kind].includes(x));
+      if (added.length) {
+        bits.push("<strong>+" + added.length + " " + label[kind] +
+          (added.length === 1 ? "" : "s") + "</strong> " +
+          added.slice(0, 6).map(cid => commentLink(cid, cid.slice(-6))).join(" "));
+      }
+      if (gone.length) {
+        bits.push("<strong>&minus;" + gone.length + " " + label[kind] +
+          (gone.length === 1 ? "" : "s") + "</strong> " +
+          gone.slice(0, 6).map(cid =>
+            '<span class="num">' + esc(cid.slice(-6)) + "</span>").join(" "));
+      }
+    }
+    rows.push("<li>" + esc(name) + ": " +
+      (bits.length ? bits.join(" &middot; ") : "nothing changed") + "</li>");
+  }
+  return '<div class="result"><strong>Since v' + esc(diffAgainst) +
+    "</strong><ul class=\"diff\">" + rows.join("") + "</ul>" +
+    '<p class="note">A record that went away was usually re-read as something ' +
+    "else, not lost. The numbers here are comment ids &mdash; the last six " +
+    "digits, linked.</p></div>";
+}
+
+function shrineLink(breedingIndex, pupNo) {
+  const gift = ((SHRINE || {})[String(breedingIndex)] || {})[String(pupNo)];
+  if (!gift || !gift[0]) return "";
+  const words = GAVE_IT[gift[3]] || GAVE_IT.shrine;
+  return '<a href="' + esc(gift[0]) + '" target="_blank" rel="noopener" title="' +
+    esc(words[1]) + " by " + esc(gift[1] != null ? D.users[gift[1]] : "?") +
+    (gift[2] ? " on " + esc(gift[2]) : "") + '">' + words[0] + "</a>";
+}
+
+// A pup's link to the registered tokota it became (upload_match.py): matched
+// by lineage, build, mane, sex, mutations and genotype, and checked against the
+// registry's upload dates. p[5] is the tokota; p[6], for a live geno that
+// matched nothing, is [how many genos fit its likeliest tokota, same genotype,
+// [those tokotas]].
+const RETIRED = new Set(["shrine", "graveyard", "machine", "consumed", "gaskin"]);
+
+// How a genotype sits with the sheet, in words: the same, different in a way
+// a Passage of the Alpha token would explain, or different in a way it rarely
+// does. Ann: nobody PotAs anything 97% of the time.
+const GENO_WORDS = {
+  2: "same genotype",
+  1: "genotype differs as a PotA token would explain",
+  0: "genotype differs more than a PotA token usually would",
+};
+
+function becameTag(p) {
+  if (p[5]) {
+    const [id, sure] = Array.isArray(p[5]) ? p[5] : [p[5], 2];
+    const words = p[1] === "uploaded" ? "as"
+      : p[1] === "adoption" ? "uploaded as"
+      : RETIRED.has(p[1]) ? "but registered as"
+      : sure === 2 ? "probably uploaded as"
+      : sure === 1 ? "possibly uploaded as"
+      : "possibly uploaded as";
+    const note = sure === 2 ? "" : sure === 1 ? " (genotype differs)" : " (genotype differs a lot)";
+    return ' <span class="became' + (sure === 2 ? "" : " unsure") + '" title="The registered ' +
+      "tokota this pup matches: same parents, build, mane, sex and mutations, registered " +
+      "after the roll; " + GENO_WORDS[sure] + '.">' +
+      words + " " + tokotaLink(String(id)) + note + "</span>";
+  }
+  if (p[6]) {
+    const [pool, geno, ids] = p[6];
+    // "likely" only for the one geno that fits a single tokota exactly.
+    const odds = geno === 1 && pool <= 1 && ids.length === 1 ? "likely"
+      : geno === -1 ? "unlikely"
+      : pool <= 1 ? "possible"
+      : "1 in " + pool;
+    const fit = geno === 1 ? 2 : geno === 0 ? 1 : 0;
+    return ' <span class="maybe" title="Same parents, build, mane and sex as ' +
+      (ids.length === 1 ? "tokota " : "tokotas ") + esc(ids.join(", ")) +
+      ", which no other record accounts for; " + GENO_WORDS[fit] + ". " + pool + " geno" +
+      (pool === 1 ? "" : "s") + " could equally be " + (ids.length === 1 ? "it" : "the first") +
+      (ids.length > 1 ? ", and this geno fits " + ids.length + " tokotas" : "") +
+      '.">might be uploaded (' + odds + "): " +
+      ids.slice(0, 3).map(id => tokotaLink(String(id))).join(", ") +
+      (ids.length > 3 ? " +" + (ids.length - 3) : "") + "</span>";
+  }
+  return "";
+}
+
+function breedCard(i, highlight) {
+  const b = D.breedings[i];
+  const partners = (b.w || []).map(w => esc(D.users[w])).join(", ");
+  const breeder = D.users[b.a];
+  const pups = (b.p || []).map(p => {
+    const holder = p[2] != null ? D.users[p[2]] : null;
+    // A pup still with the person who bred it is simply unclaimed; one sitting
+    // with somebody else is the interesting case, so name them.
+    // A geno given away can be followed to the comment that gave it: the
+    // shrine took it as an offering, the graveyard and the machine as a
+    // sacrifice, and that comment is the only record of where it went.
+    const gift = GAVE_IT[p[1]] ? shrineLink(i, p[0]) : "";
+    // "void" on a pup is the owner's own choice, not a record problem, so it
+    // reads as something they did rather than as a warning about the data.
+    const label = p[1] === "void" ? "consigned to the void"
+      // Both are dead genos. A pup sent to the Adoption Center that was later
+      // uploaded reads as uploaded instead, because the upload is the later event.
+      : p[1] === "adoption" ? "adoption center"
+      : p[1] === "consumed" ? "claimed by Meelanik"
+      : gift ? gift
+      : p[1] !== "held" ? p[1]
+      : "held (" + esc(holder || breeder) + ")";
+    const why = p[1] === "void"
+      ? ' title="The owner said to void this geno. Nothing is missing."' : "";
+    return '<span class="pup ' + p[1] + '"' + why + ">#" + p[0] + " " + label +
+      becameTag(p) + "</span>";
+  }).join("");
+  // A shrined, sacrificed or claimed pup that a registered tokota matches:
+  // one of the two records is wrong, and the card says so.
+  const retiredButRegistered = (b.p || []).filter(p => p[5] && RETIRED.has(p[1]));
+  // The full description of every geno still owed, so it can be identified.
+  const genoText = genoBlock(b, i);
+  const livePups = (b.p || []).filter(p => p[1] === "held");
+  const live = livePups.length;
+  // Read from the searched person's side when there is one: a pup someone else
+  // is holding is not their loose end.
+  const mine = viewer ? heldBy(i, viewer) : null;
+  const lowerViewer = viewer ? viewer.toLowerCase() : "";
+  const inLitter = viewer && [b.a, ...(b.w || [])]
+    .some(u => D.users[u].toLowerCase() === lowerViewer);
+  // Name who holds the live ones. A split partner holding a pup is the point of
+  // a split, not a transfer away, so say which is which rather than lumping
+  // everyone who is not the breeder together as "others".
+  const partnerNames = new Set((b.w || []).map(w => D.users[w]));
+  const holderList = [...new Set(livePups.map(p => p[2] != null ? D.users[p[2]] : breeder))]
+    .map(n => n === breeder ? esc(n) + " (bred it)"
+              : partnerNames.has(n) ? esc(n) + " (split partner)" : esc(n));
+  const tokotas = (b.k || []).map(k => {
+    const on = highlight && highlight.has(String(k).toUpperCase());
+    return on ? "<mark>" + tokotaLink(k) + "</mark>" : tokotaLink(k);
+  }).join(", ");
+
+  const kindTag = b.kind === "abando"
+    ? '<span class="badge abando">abando</span>'
+    // An owner signing their own animal up to the exchange. It spends a slot
+    // on the tokota and never involves a permission, so the card says what it
+    // is and links the comment, and nothing more.
+    : b.kind === "tokotines"
+    ? '<span class="badge tokotines" title="Signed up to the Tokotines exchange">' +
+      "Tokotines</span>"
+    // A request with no litter under it. It still happened to these animals, and
+    // a reader matching it against a slot that looks unspent wants to see it --
+    // so it is shown, saying only what the archive knows: that an admin turned
+    // it away, or that nothing readable came back.
+    : b.kind === "request"
+    ? (b.s === "declined"
+        ? '<span class="badge unknown" title="An admin declined this request or ' +
+          'sent it to the corrections thread, so no litter was rolled from it">' +
+          "declined</span>"
+        : '<span class="badge unknown" title="No litter under this request in the ' +
+          'archive: the replies are hidden, it was answered in a picture, it was ' +
+          'rolled somewhere since deleted, or nobody ever answered">' +
+          "unknown status</span>") : "";
+  const unsplitTag = b.unsplit
+    ? '<span class="badge unknown" title="No reply ever divided this litter, so ' +
+      'the remaining pups belong to everyone in the split">unsplit split</span>' : "";
+  // A reply tried to hand on a pup that was already uploaded or gone. Ann: the
+  // upload or retirement is the record to believe, so the pup's state does not
+  // change -- but the attempt is shown, because it is a mistake somebody may
+  // be relying on, and the link lets a reader see both comments for themselves.
+  // A "both" reply in a bigger litter that nothing could tie to two pups is
+  // shown the same way: an error in the record, not a guess.
+  const flagged = (b.fl || []).filter(f => f[5] !== "both_unclear");
+  const unclearBoth = (b.fl || []).filter(f => f[5] === "both_unclear");
+  const flagTag = (flagged.length
+    ? '<span class="badge unknown" title="A reply tried to transfer a pup that ' +
+      'had already been uploaded or retired. The upload or retirement stands.">' +
+      "transfer error</span>" : "") +
+    (unclearBoth.length
+    ? '<span class="badge unknown" title="A reply said &quot;both&quot; in a litter ' +
+      'of more than two, and nothing says which two pups it meant.">' +
+      "unclear pups</span>" : "");
+  const registeredTag = retiredButRegistered.length
+    ? '<span class="badge unknown" title="A pup recorded as shrined, sacrificed or ' +
+      'claimed matches a registered tokota.">retired but registered</span>' : "";
+  const registeredNote = retiredButRegistered.length
+    ? '<p class="note"><strong>Retired but registered:</strong> ' +
+      retiredButRegistered.map(p => "#" + p[0] + " is recorded as " + esc(p[1]) +
+        " but matches tokota " + tokotaLink(String(Array.isArray(p[5]) ? p[5][0] : p[5]))).join("; ") +
+      ". One of the two records is wrong.</p>"
+    : "";
+  const flagNote = registeredNote + (unclearBoth.length
+    ? '<p class="note"><strong>Which pups?</strong> ' +
+      unclearBoth.map(f =>
+        esc(f[4]) + " &middot; " +
+        commentLink(f[1], esc(f[2] != null ? D.users[f[2]] : "a reply") +
+                          (f[3] ? " " + esc(f[3]) : ""))).join("; ") +
+      ". No other comment says which two, so those pups are left as they were.</p>"
+    : "") + (flagged.length
+    ? '<p class="note"><strong>Transfer after the geno was gone:</strong> ' +
+      flagged.map(f =>
+        "#" + f[0] + " " + esc(f[4]) + " &middot; " +
+        (f[1] ? commentLink(f[1], esc(f[2] != null ? D.users[f[2]] : "a reply") +
+                               (f[3] ? " " + esc(f[3]) : ""))
+              : esc(f[3] || ""))).join("; ") +
+      ". The earlier upload or retirement is taken as correct.</p>"
+    : "");
+  const partnerNamesList = (b.w || []).map(w => esc(D.users[w]));
+  // A Tokotines entry is not a litter anybody bred or split: it is an animal
+  // signed up to the exchange by the person who owns it.
+  const provenance = b.kind === "tokotines"
+    ? '<p class="prov"><strong>Entered by ' + esc(breeder) + "</strong></p>"
+    : b.kind === "request"
+    ? '<p class="prov"><strong>Requested by ' + esc(breeder) + "</strong> &middot; " +
+      (b.s === "declined" ? "declined, so no litter was rolled"
+                          : "no litter under it in the archive") + "</p>"
+    : '<p class="prov"><strong>Bred by ' + esc(breeder) + "</strong> &middot; " +
+      (partnerNamesList.length
+        ? "split with " + partnerNamesList.join(", ") +
+          (b.unsplit ? ' <span class="warn">(never divided)</span>' : "")
+        : "not split &mdash; the whole litter is theirs") + "</p>";
+  // Settled, for a person, means nothing here is theirs any more -- whether
+  // the pups were uploaded or simply belong to somebody else now.
+  const state = mine == null ? b.s
+    : mine > 0 ? "open" : b.s === "unknown" ? "unknown" : "settled";
+  // A Tokotines entry has no litter of its own, so the geno arithmetic has
+  // nothing to say about it: "all uploaded or shrined" would be a claim about
+  // pups that were never rolled here.
+  const badgeText = b.kind === "tokotines" ? "entry"
+    : b.kind === "request"
+      ? (b.s === "declined" ? "declined" : "unknown status")
+    : mine == null
+    ? (b.s === "open" ? live + " live geno" + (live === 1 ? "" : "s")
+       : b.s === "settled" ? "all uploaded or shrined" : "litter unreadable")
+    : mine > 0 ? mine + " live geno" + (mine === 1 ? "" : "s") + " theirs"
+    : live > 0 ? "none theirs &middot; " + live + " live with others"
+    : b.s === "settled" ? "all uploaded or shrined" : "litter unreadable";
+  const badgeTitle = b.kind === "tokotines"
+    ? "An animal signed up to the exchange. No litter was rolled under this comment."
+    : b.kind === "request"
+    ? (b.s === "declined"
+        ? "An admin turned this request away. It is kept because it still says "
+          + "what was asked for, and against which slot."
+        : "The request is in the archive; no litter under it is. Follow the "
+          + "comment to see what happened.")
+    : mine == null
+    ? (b.s === "settled"
+        ? "Every pup was uploaded or sent to the shrine, so none are still live"
+        : b.s === "open"
+          ? "Pups that have not been uploaded or shrined are still live genos"
+          : "The litter could not be read, so nothing can be counted")
+    : mine > 0
+      ? "Genos from this litter that " + esc(viewer) + " still holds"
+      : live > 0
+        ? "There are live genos here, but they belong to other people"
+        : "Nothing from this litter is outstanding";
+  // A pup handed to someone out of a litter they had no part in is the case
+  // worth pointing at: it is theirs, and nothing says so anywhere else.
+  const handedTag = (mine > 0 && !inLitter)
+    ? '<span class="badge open" title="A pup from someone else&rsquo;s litter was ' +
+      'transferred here and never uploaded">transferred in</span>' : "";
+  return '<div class="card"><div class="top">' +
+    '<span class="badge ' + state + '" title="' + badgeTitle + '">' +
+      badgeText + "</span>" +
+    threadStanding(b.t) + handedTag + kindTag + unsplitTag + flagTag + registeredTag +
+    '<span class="who">' + esc(D.users[b.a]) + "</span>" +
+    (partners ? '<span class="when">split with ' + partners + "</span>" : "") +
+    '<span class="when num">' + esc(b.d) + "</span>" +
+    whereLine(b.t, b.cu) + "</div>" +
+    provenance +
+    (tokotas ? '<p class="grant">' + tokotas + "</p>" : "") +
+    approvalLinks(b) +
+    '<p class="grant">' + esc(textOf("b", i).slice(0, 320)) + "</p>" +
+    (b.n ? '<p class="result">Litter of ' + b.n + "</p>" : "") +
+    (pups ? '<div class="pups">' + pups + "</div>" : "") +
+    flagNote +
+    (holderList.length ? '<p class="holders">Live genos with ' +
+      holderList.join(", ") + "</p>" : "") + genoText + repliesBlock(i) +
+    (b.u ? '<p class="warn">' + b.u + " reply(s) mention a pup without numbering it.</p>" : "") +
+    "</div>";
+}
+
+function section(title, items, renderer, highlight, emptyText) {
+  let html = "<h2>" + title + "</h2>";
+  if (!items.length) return html + '<p class="empty">' + emptyText + "</p>";
+  html += '<p class="count">' + items.length + "</p>";
+  return html + items.map(i => renderer(i, highlight)).join("");
+}
+
+// A pup counts as this person's if they still hold it -- either it was never
+// disposed of and they ran the breeding, or someone handed it to them and
+// nobody has uploaded it since.
+function heldBy(breedingIndex, name) {
+  const lower = name.toLowerCase();
+  const b = D.breedings[breedingIndex];
+  const held = (b.p || []).filter(p => p[1] === "held");
+  // An undivided split is owed to the breeder and every partner jointly, so the
+  // same pups show for each of them -- flagged, not silently double-counted.
+  if (b.unsplit) {
+    const claimants = [D.users[b.a], ...(b.w || []).map(w => D.users[w])]
+      .map(n => n.toLowerCase());
+    if (claimants.includes(lower)) return held.length;
+  }
+  return held.filter(p => p[2] != null && D.users[p[2]].toLowerCase() === lower).length;
+}
+
+// The four things a person can have in a thread. Kept in this order wherever
+// they are listed, so a journal's section always reads the same way.
+const CATEGORIES = [
+  { key: "breedings", label: "Breedings", plural: "breedings" },
+  { key: "genos", label: "Genos held", plural: "genos held from other litters" },
+  { key: "abandos", label: "Abandos", plural: "abandos" },
+  { key: "written", label: "Slots written", plural: "slots written" },
+  { key: "owned", label: "Slots owned", plural: "slots owned" },
+];
+const active = new Set(CATEGORIES.map(c => c.key));
+let onlyOpen = false;
+
+// What still needs attention comes first: an unused permission or a litter with
+// genos left, then anything unreadable, then the settled ones.
+const STATUS_RANK = {
+  probably_used: 1,           // spent, on the word of a comment nobody can read
+  remaining: 0, open: 0,      // still has something in it
+  unknown: 1,                 // could not be read -- worth a human look
+  used: 2, settled: 2,        // finished
+};
+const rankOf = item => STATUS_RANK[item.status] ?? 1;
+const isSettled = item => rankOf(item) === 2;
+
+function personItems(name) {
+  const key = name.toLowerCase();
+  const slots = D.byUser[key] || {};
+  const breeds = D.byBreeder[key] || {};
+  const mine = [...(breeds.o || []), ...(breeds.s || [])];
+  // Genos handed to them out of a litter they had no part in.
+  const handed = (D.byHolder[key] || []).filter(i => !mine.includes(i));
+  const litters = [...new Set([...mine, ...handed])];
+
+  const items = [];
+  const posted = new Set(mine);
+  for (const i of litters) {
+    const b = D.breedings[i];
+    const held = heldBy(i, name);
+    // A litter they ran is theirs whole; a geno handed to them out of someone
+    // else's litter is just that geno, and showing the other seven pups around
+    // it was burying the one line that belongs to them.
+    const ownLitter = posted.has(i);
+    items.push({
+      cat: ownLitter ? (b.kind === "abando" ? "abandos" : "breedings") : "genos",
+      thread: b.t, date: b.d, index: i,
+      render: ownLitter ? breedCard : genoCard,
+      status: held > 0 ? "open" : b.s === "unknown" ? "unknown" : "settled",
+    });
+  }
+  for (const i of slots.g || []) {
+    items.push({ cat: "written", thread: D.perms[i].t, date: D.perms[i].d,
+                 index: i, render: permCard, status: D.perms[i].s });
+  }
+  for (const i of slots.r || []) {
+    items.push({ cat: "owned", thread: D.perms[i].t, date: D.perms[i].d,
+                 index: i, render: permCard, status: D.perms[i].s });
+  }
+  return { items, litters, genosLeft: litters.reduce((n, i) => n + heldBy(i, name), 0) };
+}
+
+function openToggle(settledCount) {
+  return '<button class="cat open-only" data-openonly="1" aria-pressed="' + onlyOpen +
+    '" title="Hide permissions that are fully used and litters with no genos left">' +
+    "Only what&rsquo;s open" +
+    (settledCount ? ' <span class="n">' + settledCount + " settled</span>" : "") +
+    "</button>";
+}
+
+function categoryToggles(counts, keys) {
+  const shown = keys ? CATEGORIES.filter(c => keys.includes(c.key)) : CATEGORIES;
+  return '<div class="cats">' + shown.map(c => {
+    const n = counts[c.key] || 0;
+    const title = n ? (active.has(c.key) ? "Click to hide " : "Click to show ") + c.plural
+                    : "This person has no " + c.plural;
+    return '<button class="cat" data-cat="' + c.key + '" aria-pressed="' +
+      active.has(c.key) + '"' + (n ? "" : " disabled") + ' title="' + title + '">' +
+      c.label + ' <span class="n">' + n + "</span></button>";
+  }).join("") + "</div>";
+}
+
+
+// One list per kind, newest first. It used to be grouped by journal, which made
+// sense when reaching a comment meant finding its thread and scrolling; now
+// every card links straight to the comment, and the grouping only scattered a
+// person's slots across thirty headings.
+function renderGrouped(items, highlight) {
+  let html = "";
+  for (const cat of CATEGORIES) {
+    const list = items
+      .filter(i => i.cat === cat.key)
+      .sort((a, b) => rankOf(a) - rankOf(b) || (b.date || "").localeCompare(a.date || ""));
+    if (!list.length) continue;
+    html += '<h2 class="kind">' + cat.label +
+      ' <span class="count">' + list.length + "</span></h2>";
+    html += list.map(i => i.render(i.index, highlight)).join("");
+  }
+  return html;
+}
+
+// ---- spreadsheet view ------------------------------------------------------
+//
+// Reading one slot is a card job; working through three hundred of them is a
+// spreadsheet job. Same rows, two shapes.
+//
+// The ticks are kept in this browser and nowhere else -- the site is a set of
+// static files with no server behind it, so there is no account to hang them
+// on. They do not follow you to another machine and they go if you clear site
+// data, which is why every export carries the tick as a column: the CSV is the
+// copy that lasts.
+let layout = "cards";        // cards | sheet
+let hideMigrated = false;
+const MARK_KEY = "tokotna.migrated.v1";
+
+function loadMarks() {
+  try { return new Set(JSON.parse(localStorage.getItem(MARK_KEY) || "[]")); }
+  catch (e) { return new Set(); }   // private window, or storage switched off
+}
+function saveMarks() {
+  try { localStorage.setItem(MARK_KEY, JSON.stringify([...ticks])); }
+  catch (e) { /* ticks still work, they just will not survive a reload */ }
+}
+let ticks = loadMarks();
+
+// One row shape for every kind of entry, so a mixed export still lines up in a
+// spreadsheet. Blank rather than absent where a column does not apply.
+function rowOf(item) {
+  const th = D.threads[item.thread] || {};
+  const common = { journal: th.t || "", journalUrl: th.u || "", date: item.date || "" };
+  if (item.cat === "written" || item.cat === "owned") {
+    const p = D.perms[item.index];
+    const named = new Set([...(p.k || []).map(k => String(k[0]).toUpperCase()),
+                           ...(p.tk || []).map(k => String(k).toUpperCase())]);
+    return Object.assign(common, {
+      id: p.id || "", kind: item.cat === "written" ? "slot written" : "slot owned",
+      from: D.users[p.a] || "",
+      to: (p.r || []).map(r => D.users[r]).join(", "),
+      tokotas: [...named].join(" "),
+      granted: p.g, used: p.u, left: p.l,
+      // The sheet and the CSV are read by people, not by code, so the status
+      // travels in the same words the badge uses.
+      status: p.s === "probably_used" ? "probably used" : p.s,
+      text: textOf("p", item.index), link: commentUrl(p.cu),
+    });
+  }
+  const b = D.breedings[item.index];
+  const live = (b.p || []).filter(x => x[1] === "held");
+  if (item.cat === "genos") {
+    // One row per litter still, but describing only the pups this person holds:
+    // a sheet of "genos I bought" should not carry other people's animals.
+    const texts = (GENOS || {})[String(item.index)] || {};
+    const lower = (viewer || "").toLowerCase();
+    const ours = (b.p || []).filter(p => p[2] != null &&
+      (D.users[p[2]] || "").toLowerCase() === lower);
+    const pups = ours.length ? ours : live;
+    return Object.assign(common, {
+      id: b.id || "", kind: "geno held",
+      from: D.users[b.a] || "", to: viewer || "",
+      tokotas: (b.k || []).join(" "),
+      granted: pups.length,
+      used: pups.filter(p => p[1] !== "held").length,
+      left: pups.filter(p => p[1] === "held").length,
+      status: item.status,
+      text: pups.map(p => "#" + p[0] + " " + (texts[String(p[0])] || "")).join(" | "),
+      link: commentUrl(b.cu),
+    });
+  }
+  return Object.assign(common, {
+    id: b.id || "", kind: b.kind === "abando" ? "abando"
+      : b.kind === "tokotines" ? "tokotines entry"
+      : b.kind === "request"
+        ? (b.s === "declined" ? "breeding request, declined"
+                              : "breeding request, no litter recorded")
+      : "breeding",
+    from: D.users[b.a] || "",
+    to: (b.w || []).map(w => D.users[w]).join(", "),
+    tokotas: (b.k || []).join(" "),
+    granted: b.n, used: (b.n || 0) - live.length, left: live.length,
+    // item.status is already read from the searched person's side, which is
+    // the answer they want in a sheet they are working through.
+    status: item.status, text: textOf("b", item.index), link: commentUrl(b.cu),
+  });
+}
+
+const COLUMNS = [
+  { key: "kind",    label: "Type" },
+  { key: "status",  label: "Status" },
+  { key: "date",    label: "Date" },
+  { key: "journal", label: "Journal", cell: r => r.journalUrl
+      ? '<a href="' + esc(r.journalUrl) + '" target="_blank" rel="noopener">' +
+        esc(r.journal) + "</a>" : esc(r.journal) },
+  { key: "from",    label: "From" },
+  { key: "to",      label: "To" },
+  { key: "tokotas", label: "Tokotas", cell: r => r.tokotas
+      ? r.tokotas.split(" ").map(tokotaLink).join(" ") : "" },
+  { key: "granted", label: "Granted", num: true },
+  { key: "used",    label: "Used",    num: true },
+  { key: "left",    label: "Left",    num: true },
+  { key: "text",    label: "Comment", wrap: true },
+];
+
+function renderSheet(items) {
+  const rows = items.map(rowOf).filter(r => !(hideMigrated && ticks.has(r.id)));
+  if (!rows.length) {
+    return '<p class="empty">Every row here is ticked. Turn off ' +
+      "<strong>Hide migrated</strong> to see them again.</p>";
+  }
+  const head = '<tr><th title="Tick a row once you have dealt with it">Done</th>' +
+    COLUMNS.map(c => "<th" + (c.num ? ' class="num"' : "") + ">" + c.label + "</th>").join("") +
+    "</tr>";
+  const body = rows.map(r => {
+    const done = ticks.has(r.id);
+    return "<tr" + (done ? ' class="migrated"' : "") + ">" +
+      '<td class="tick"><input type="checkbox" data-mark="' + esc(r.id) + '"' +
+      (done ? " checked" : "") + ' aria-label="Mark migrated"></td>' +
+      COLUMNS.map(c => {
+        const value = c.cell ? c.cell(r) : esc(r[c.key] == null ? "" : r[c.key]);
+        const cls = c.num ? "num" : c.wrap ? "wrap" : "";
+        return '<td class="' + cls + '">' + value + "</td>";
+      }).join("") + "</tr>";
+  }).join("");
+  return '<div class="sheetwrap"><table class="sheet"><thead>' + head +
+    "</thead><tbody>" + body + "</tbody></table></div>";
+}
+
+// ---- CSV -------------------------------------------------------------------
+
+// Excel picks the encoding from a byte-order mark and splits lines on CRLF.
+// Without both, accented usernames arrive as mojibake.
+const CSV_NL = String.fromCharCode(13, 10);
+const CSV_BOM = String.fromCharCode(65279);
+
+function csvCell(value) {
+  let flat = String(value == null ? "" : value)
+    .split(String.fromCharCode(13)).join(" ")
+    .split(String.fromCharCode(10)).join(" ")
+    .split(String.fromCharCode(9)).join(" ");
+  if (flat && "=+-@".includes(flat[0])) flat = "'" + flat;
+  return '"' + flat.replace(/"/g, '""') + '"';
+}
+
+// The table links its tokota chips, but a CSV cell cannot hold a link, so the
+// addresses travel as their own columns: one per tokota where the row names only
+// a few, which is the case that is actually clickable in a spreadsheet.
+const TOKOTA_LINK_COLUMNS = 4;
+
+function tokotaUrls(row) {
+  return (row.tokotas || "").split(" ").filter(Boolean).map(tokotaUrl).filter(Boolean);
+}
+
+function toCsv(items) {
+  const rows = items.map(rowOf);
+  // Only as many link columns as the widest row needs, so a person with nothing
+  // but single-tokota slots does not get three empty columns.
+  const width = Math.min(TOKOTA_LINK_COLUMNS,
+                         rows.reduce((n, r) => Math.max(n, tokotaUrls(r).length), 0));
+  const linkHeads = [];
+  for (let i = 0; i < width; i++) linkHeads.push("Tokota link " + (i + 1));
+  const header = ["Done", ...COLUMNS.map(c => c.label), ...linkHeads,
+                  "Comment link", "Journal link", "Comment id"];
+  const lines = [header.map(csvCell).join(",")];
+  for (const r of rows) {
+    const urls = tokotaUrls(r);
+    const cells = [];
+    for (let i = 0; i < width; i++) cells.push(urls[i] || "");
+    // Anything past the last column still travels, just crowded into it, so no
+    // tokota is silently dropped from the export.
+    if (urls.length > width && width) {
+      cells[width - 1] = urls.slice(width - 1).join(" ");
+    }
+    lines.push([ticks.has(r.id) ? "yes" : "",
+                ...COLUMNS.map(c => r[c.key]),
+                ...cells, r.link || "", r.journalUrl, r.id].map(csvCell).join(","));
+  }
+  return CSV_BOM + lines.join(CSV_NL) + CSV_NL;
+}
+
+function download(name, text, type) {
+  const url = URL.createObjectURL(new Blob([text], { type: type }));
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function stamp(who) {
+  const safe = (who || "records").replace(/[^A-Za-z0-9_-]+/g, "-").slice(0, 40);
+  return "tokotna-" + safe + "-" + new Date().toISOString().slice(0, 10);
+}
+
+// The ticks on their own, so they can be carried to another browser or kept as
+// a backup against clearing site data.
+function marksJson() {
+  return JSON.stringify({ saved: new Date().toISOString(), migrated: [...ticks] }, null, 1);
+}
+
+function importMarks(text) {
+  let parsed;
+  try { parsed = JSON.parse(text); } catch (e) { return null; }
+  const list = Array.isArray(parsed) ? parsed : parsed && parsed.migrated;
+  if (!Array.isArray(list)) return null;
+  const before = ticks.size;
+  for (const id of list) if (typeof id === "string") ticks.add(id);
+  saveMarks();
+  return ticks.size - before;
+}
+
+// Kept in a module-level slot so the CSV button exports exactly the rows on
+// screen, filters and all, rather than re-deriving them and drifting.
+let sheetItems = [];
+
+function sheetBar(items) {
+  sheetItems = items;
+  const done = items.map(rowOf).filter(r => ticks.has(r.id)).length;
+  return '<div class="sheetbar">' +
+    '<button class="cat" data-layout="' + (layout === "sheet" ? "cards" : "sheet") + '"' +
+      ' title="Switch between reading cards and working through rows">' +
+      (layout === "sheet" ? "Cards" : "Spreadsheet") + "</button>" +
+    (layout === "sheet"
+      ? '<button class="cat" data-hidemigrated="1" aria-pressed="' + hideMigrated + '"' +
+        ' title="Hide the rows you have already ticked">Hide migrated</button>'
+      : "") +
+    '<button class="cat" data-csv="1" title="Download the rows shown, ticks included">' +
+      "Export CSV</button>" +
+    '<span class="grow"></span>' +
+    '<span class="ticks">' + done + " of " + items.length + " ticked" +
+      (ticks.size > done ? " &middot; " + ticks.size + " ticked in all, this browser only" : "") +
+      "</span>" +
+    '<button class="cat" data-ticks="save" title="Save the ticks to a file">Back up ticks</button>' +
+    '<button class="cat" data-ticks="load" title="Load ticks from a file">Restore</button>' +
+    "</div>";
+}
+
+function renderPerson(name) {
+  const { items, litters, genosLeft } = personItems(name);
+  if (!items.length) {
+    out.innerHTML = '<p class="empty">Nothing found for &ldquo;' + esc(name) +
+      "&rdquo;. Names must match the DeviantArt username as written in the comments.</p>";
+    return;
+  }
+
+  const counts = {};
+  for (const item of items) counts[item.cat] = (counts[item.cat] || 0) + 1;
+  const settled = items.filter(isSettled).length;
+  const shown = items.filter(i => active.has(i.cat) && !(onlyOpen && isSettled(i)));
+
+  let html = "";
+  if (genosLeft || litters.length) {
+    html += '<p class="count"><strong>' + genosLeft + " live geno" +
+      (genosLeft === 1 ? "" : "s") + "</strong> held across " + litters.length +
+      " litter" + (litters.length === 1 ? "" : "s") + ".</p>";
+  }
+  html += categoryToggles(counts).replace("</div>", openToggle(settled) + "</div>");
+  html += sheetBar(shown);
+  html += diffControls() + diffPeople([name]);
+  const hidden = CATEGORIES.filter(c => !active.has(c.key) && counts[c.key]);
+  html += shown.length
+    ? '<p class="count">' + shown.length + " entries, newest first" +
+      (hidden.length ? " &middot; hiding " +
+        hidden.map(c => counts[c.key] + " " + c.plural).join(", ") : "") +
+      (onlyOpen && settled ? " &middot; hiding " + settled + " settled" : "") + "</p>" +
+      (layout === "sheet" ? renderSheet(shown) : renderGrouped(shown))
+    : '<p class="empty">Nothing selected. Turn a category back on above.</p>';
+  html += '<p class="note">Only journals in the archive are searched &mdash; see ' +
+    "<strong>What&rsquo;s covered</strong> for which those are, and which DeviantArt " +
+    "will not serve.</p>";
+  out.innerHTML = html;
+}
+
+
+function tokotaItems(token) {
+  const ids = expand(token);
+  const slotHits = [...new Set(ids.flatMap(id => D.byTokota[id] || []))];
+  const breedHits = [...new Set(ids.flatMap(id => D.byBreedTokota[id] || []))];
+  return {
+    ids,
+    label: canonicalId(token),
+    items: [
+      ...breedHits.map(i => ({
+        cat: D.breedings[i].kind === "abando" ? "abandos" : "breedings",
+        thread: D.breedings[i].t, date: D.breedings[i].d, index: i,
+        render: breedCard, status: D.breedings[i].s })),
+      ...slotHits.map(i => ({
+        cat: "written", thread: D.perms[i].t, date: D.perms[i].d,
+        index: i, render: permCard, status: D.perms[i].s })),
+    ],
+  };
+}
+
+function renderTokotas(text) {
+  const wanted = text.split(",").map(t => t.trim()).filter(Boolean);
+  if (!wanted.length) { out.innerHTML = ""; return; }
+
+  const groups = wanted.map(tokotaItems);
+  // An abando is a litter given up, not a pairing -- no tokota is party to one,
+  // so the category has nothing to say on this tab.
+  for (const g of groups) g.items = g.items.filter(i => i.cat !== "abandos");
+  const all = groups.flatMap(g => g.items);
+  if (!all.length) {
+    out.innerHTML = '<p class="empty">Nothing recorded in the archive for ' +
+      esc(wanted.join(", ")) + ".</p>";
+    return;
+  }
+
+  const counts = {};
+  for (const item of all) counts[item.cat] = (counts[item.cat] || 0) + 1;
+  const settled = all.filter(isSettled).length;
+  const keep = i => active.has(i.cat) && !(onlyOpen && isSettled(i));
+
+  let html = categoryToggles(counts, ["breedings", "written"])
+      .replace("</div>", openToggle(settled) + "</div>") +
+    sheetBar(all.filter(keep));
+
+  // Rows are rows: the tokota-by-tokota and journal-by-journal groupings are a
+  // reading aid, and neither survives being poured into a spreadsheet.
+  if (layout === "sheet") {
+    out.innerHTML = html + renderSheet(all.filter(keep));
+    return;
+  }
+
+  // One animal at a time. Grouping this tab by journal was left over from when
+  // the archive was a pile of journals to read through; now that a tokota has a
+  // page of its own, which journal a record was posted in is a detail on the
+  // card rather than a way to arrange the page.
+  for (const group of groups) {
+    const marks = new Set(group.ids);
+    const visible = group.items.filter(keep);
+    html += '<h1 class="tokota-head">Tokota ' + esc(group.label) + "</h1>";
+    html += diffControls([group.label]) + diffBlock([group.label]);
+    html += visible.length
+      ? '<p class="count">' + visible.length + " entries, newest first</p>" +
+        renderGrouped(visible, marks)
+      : '<p class="empty">' + (group.items.length
+          ? "Nothing for this tokota matches the filters above."
+          : "Nothing recorded for this tokota in the archive.") + "</p>";
+  }
+  out.innerHTML = html;
+}
+
+// ---- what's covered -------------------------------------------------------
+//
+// Which journals are in the archive, how complete each one is, and which are
+// still queued. Worth being blunt about the gaps: a journal that DeviantArt
+// will not serve past 10,000 comments looks identical to a finished one unless
+// it is called out, and someone reading "nothing found" deserves to know
+// whether that means "not there" or "we could not fetch it".
+function journalState(th) {
+  const held = th.n || 0, said = th.r || 0;
+  // Measure against what the scan could actually fetch, not against
+  // DeviantArt's own total: that counts comments it serves to nobody, so a
+  // finished journal routinely "reads short" by a few percent with nothing
+  // missing at all.
+  const target = th.got || said;
+  // Harvested threads carry their own standing, which outranks anything the
+  // scanner can work out: it is about whether the journal can still be posted
+  // to, not about how much of it we managed to read.
+  if (th.hs === "historical") {
+    return { label: "broken", cls: "unknown",
+             note: "Full and permanently closed &mdash; nobody can post here again, so "
+                 + "nothing in it can be claimed or corrected. "
+                 + held.toLocaleString() + " of " + said.toLocaleString() + " read." };
+  }
+  const short = target && held < target * 0.95;
+  // A journal still in the queue is not damaged, it is just unfinished. Saying
+  // "broken" of one the scanner simply has not reached yet sends people looking
+  // for a problem that is not there.
+  if (!th.d) {
+    return { label: "scanning", cls: "remaining",
+             note: short && said
+               ? held.toLocaleString() + " of " + said.toLocaleString()
+                 + " read so far; the scan resumes where it left off."
+               : "Not finished yet." };
+  }
+  // These old journals hang every request off a handful of *featured* comments,
+  // and the API's thread listing leaves featured comments out -- so it reports
+  // the full size and then serves almost nothing. Not a size limit, and not
+  // something a re-scan will fix.
+  if (said && held < said * 0.6) {
+    return { label: "unreachable", cls: "unknown",
+             note: "DeviantArt reports " + said.toLocaleString() + " comments; the API "
+                 + "serves " + held.toLocaleString() + ". Everything here is a reply to a "
+                 + "featured comment, and the API does not list those." };
+  }
+  if (short) {
+    return { label: "partial", cls: "unknown",
+             note: "DeviantArt reports " + said.toLocaleString() + " comments here; "
+                 + held.toLocaleString() + " were read." };
+  }
+  return { label: "complete", cls: "used",
+           note: said && held < said
+             ? held.toLocaleString() + " read of the " + said.toLocaleString()
+               + " DeviantArt counts. The rest are comments it serves to nobody "
+               + "&mdash; deleted, or removed by a moderator before we arrived."
+             : "" };
+}
+
+// ---- slots written against tokotas someone owns ----------------------------
+//
+// Grouped one animal at a time or one journal at a time, and paged, because a
+// breeder with two hundred tokotas cannot read a single flat list and the job
+// is usually "work through mine one by one".
+let ownerGrouping = "tokota";     // tokota | journal
+let ownerPage = 0;
+const OWNER_PAGE = 12;
+
+function ownerControls(groups, total) {
+  const pages = Math.max(1, Math.ceil(groups / OWNER_PAGE));
+  return '<div class="sheetbar">' +
+    ["tokota", "journal"].map(g =>
+      '<button class="cat" data-ownergroup="' + g + '" aria-pressed="' +
+      (ownerGrouping === g) + '">by ' + g + "</button>").join("") +
+    '<span style="width:14px"></span>' +
+    '<button class="cat" data-openonly="1" aria-pressed="' + onlyOpen +
+      '" title="Hide permissions that are fully used">Only what&rsquo;s open</button>' +
+    '<button class="cat" data-csv="1" title="Download every permission listed here, ' +
+      'not just this page">Export CSV</button>' +
+    '<span class="grow"></span>' +
+    '<button class="cat" data-ownerpage="-1">&larr;</button>' +
+    '<span class="ticks">' + (ownerPage + 1) + " of " + pages +
+      " &middot; " + total.toLocaleString() + " permissions</span>" +
+    '<button class="cat" data-ownerpage="1">&rarr;</button>' +
+    "</div>";
+}
+
+function renderOwner(name) {
+  const owned = tokotasOwnedBy(name);
+  sheetItems = [];  // nothing to export until this view has rows of its own
+  if (!owned.length) {
+    out.innerHTML = '<p class="empty">No tokota in the registry is owned by &ldquo;' +
+      esc(name) + "&rdquo;. Names must match the DeviantArt username the registry " +
+      "holds, and only tokotas that appear somewhere in the archive are carried here.</p>";
+    return;
+  }
+  const all = permsOnOwnedTokotas(name)
+    .filter(i => !(onlyOpen && STATUS_RANK[D.perms[i].s] === 2));
+
+  // Group, then page over the groups so an animal is never split across pages.
+  const groups = new Map();
+  for (const i of all) {
+    const p = D.perms[i];
+    if (ownerGrouping === "journal") {
+      const key = String(p.t);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(i);
+    } else {
+      const mine = new Set(owned);
+      const named = [...new Set([...(p.k || []).map(k => String(k[0]).toUpperCase()),
+                                 ...(p.tk || []).map(x => String(x).toUpperCase())])]
+        .filter(x => mine.has(x));
+      for (const id of (named.length ? named : ["(unattributed)"])) {
+        if (!groups.has(id)) groups.set(id, []);
+        groups.get(id).push(i);
+      }
+    }
+  }
+  const keys = [...groups.keys()].sort((a, b) =>
+    ownerGrouping === "journal"
+      ? ((D.threads[b] || {}).p || "").localeCompare((D.threads[a] || {}).p || "")
+      : (Number(a) || 0) - (Number(b) || 0));
+
+  // The export covers every permission on this owner's animals, not the twelve
+  // groups on screen: this is the list people actually work through offline.
+  sheetItems = all.map(i => ({
+    cat: "owned", index: i, thread: D.perms[i].t, date: D.perms[i].d,
+  }));
+
+  const pages = Math.max(1, Math.ceil(keys.length / OWNER_PAGE));
+  if (ownerPage >= pages) ownerPage = pages - 1;
+  if (ownerPage < 0) ownerPage = 0;
+  const slice = keys.slice(ownerPage * OWNER_PAGE, (ownerPage + 1) * OWNER_PAGE);
+
+  let html = '<p class="count"><strong>' + owned.length.toLocaleString() +
+    " tokota" + (owned.length === 1 ? "" : "s") + "</strong> owned by " + esc(name) +
+    " &middot; " + all.length.toLocaleString() + " slot permission" +
+    (all.length === 1 ? "" : "s") + " written against them.</p>";
+  html += ownerControls(keys.length, all.length);
+  // Both scopes, because both are the question here: what has changed for this
+  // person, and what has changed on the animals they own.
+  html += diffControls() + diffPeople([name]) +
+    diffBlock(owned.map(canonicalId));
+
+  for (const key of slice) {
+    const list = groups.get(key).sort((a, b) =>
+      rankOf({ status: D.perms[a].s }) - rankOf({ status: D.perms[b].s })
+      || (D.perms[b].d || "").localeCompare(D.perms[a].d || ""));
+    const heading = ownerGrouping === "journal"
+      ? threadLink(Number(key))
+      : "Tokota " + tokotaLink(key) +
+        (ownerOf(key) ? '' : ' <span class="when">(no owner in the registry)</span>');
+    html += '<h1 class="tokota-head">' + heading +
+      ' <span class="count">' + list.length + "</span></h1>";
+    html += list.map(i => permCard(i)).join("");
+  }
+  html += ownerControls(keys.length, all.length);
+  out.innerHTML = html;
+}
+
+// ---- by link ---------------------------------------------------------------
+//
+// Paste a comment's address and get whatever the archive knows about it. A
+// comment can be the record itself -- a permission, a breeding -- or it can be
+// a comment the record quotes, or the offering that took a geno away. All three
+// are worth answering, because the question behind this is nearly always "what
+// did you make of *this* comment", and hunting for it by person or tokota first
+// is the slow way to ask.
+const _COMMENT_ID = /(?:comments\/1\/\d+\/(\d+))|(?:comments\.deviantart\.com\/1\/\d+\/(\d+))/;
+
+function commentIdFrom(query) {
+  const text = (query || "").trim();
+  const match = _COMMENT_ID.exec(text);
+  if (match) return match[1] || match[2];
+  return /^\d{6,12}$/.test(text) ? text : null;
+}
+
+let byComment = null;
+
+function commentIndex() {
+  if (byComment) return byComment;
+  byComment = new Map();
+  D.perms.forEach((p, i) => { if (p.id) byComment.set(String(p.id), ["perm", i]); });
+  D.breedings.forEach((b, i) => { if (b.id) byComment.set(String(b.id), ["breeding", i]); });
+  return byComment;
+}
+
+function renderByLink(query) {
+  if (!query) {
+    return '<p class="empty">Paste a comment link &mdash; ' +
+      "deviantart.com/comments/1/&lt;journal&gt;/&lt;comment&gt; &mdash; or just the " +
+      "comment number.</p>";
+  }
+  const id = commentIdFrom(query);
+  if (!id) {
+    return '<p class="empty">That does not look like a comment link. They end in ' +
+      "two numbers: the journal, then the comment.</p>";
+  }
+  const found = commentIndex().get(id);
+  let html = '<p class="count">Comment <span class="num">' + esc(id) + "</span></p>";
+  if (found && found[0] === "perm") {
+    return html + '<h2 class="kind">Read as a slot permission</h2>' +
+      permCard(found[1]);
+  }
+  if (found && found[0] === "breeding") {
+    const b = D.breedings[found[1]];
+    viewer = null;
+    return html + '<h2 class="kind">Read as a ' +
+      (b.kind === "abando" ? "claim on an abandoned pup"
+       : b.kind === "tokotines" ? "Tokotines entry"
+       : b.kind === "request"
+       ? (b.s === "declined" ? "breeding request an admin declined"
+                             : "breeding request with no litter under it")
+       : "breeding") +
+      "</h2>" + breedCard(found[1]);
+  }
+
+  // Not a record of its own. It may still be the comment a record quotes, or
+  // the one that took a geno to the shrine or the graveyard.
+  const quoting = (CITES || [])
+    .map((c, ix) => [c, ix])
+    .filter(([c]) => c[2] && commentIdFrom(c[2]) === id);
+  const perms = [];
+  for (const [permIndex, spots] of Object.entries(D.citedBy || {})) {
+    if (quoting.some(([, ix]) => spots.includes(ix))) perms.push(Number(permIndex));
+  }
+  const gifts = [];
+  for (const [breedingIndex, pups] of Object.entries(SHRINE || {})) {
+    for (const [pup, gift] of Object.entries(pups)) {
+      if (gift[0] && commentIdFrom(gift[0]) === id) {
+        gifts.push([Number(breedingIndex), pup, gift]);
+      }
+    }
+  }
+  if (!perms.length && !gifts.length) {
+    return html + '<p class="empty">Nothing in this build is that comment, and ' +
+      "nothing quotes it. It may be ordinary conversation, a rolled litter " +
+      "(which is shown on its breeding rather than on its own), or in a journal " +
+      "the archive does not hold &mdash; see <strong>What&rsquo;s covered</strong>.</p>";
+  }
+  if (perms.length) {
+    html += '<h2 class="kind">Quotes ' + perms.length + " slot permission" +
+      (perms.length === 1 ? "" : "s") + "</h2>" +
+      perms.map(i => permCard(i)).join("");
+  }
+  if (gifts.length) {
+    html += '<h2 class="kind">Took ' + gifts.length + " geno" +
+      (gifts.length === 1 ? "" : "s") + " out of a litter</h2>";
+    for (const [breedingIndex, pup, gift] of gifts) {
+      const words = GAVE_IT[gift[3]] || GAVE_IT.shrine;
+      html += '<p class="note">Pup #' + esc(pup) + " &mdash; " + esc(words[1]) +
+        "</p>" + breedCard(breedingIndex);
+    }
+  }
+  return html;
+}
+
+function renderCoverage(filter) {
+  const want = (filter || "").trim().toLowerCase();
+  const rows = D.threads
+    .map((th, i) => ({ th, i }))
+    .filter(r => (r.th.t || "").toLowerCase().includes(want))
+    .sort((a, b) => (b.th.p || "").localeCompare(a.th.p || ""));
+
+  const held = D.threads.reduce((n, th) => n + (th.n || 0), 0);
+  const broken = D.threads.filter(th => th.c).length;
+  const lost = D.threads.filter(th => th.c)
+    .reduce((n, th) => n + Math.max((th.r || 0) - (th.n || 0), 0), 0);
+
+  let html = '<p class="count"><strong>' + D.threads.length + " journals</strong>, " +
+    held.toLocaleString() + " comments read" +
+    (broken ? " &middot; " + broken + " journal" + (broken === 1 ? "" : "s") +
+      " DeviantArt will not serve in full (" + lost.toLocaleString() +
+      " comments out of reach)" : "") + "</p>";
+
+  if (!rows.length) {
+    return html + '<p class="empty">No journal matches &ldquo;' + esc(filter) + "&rdquo;.</p>";
+  }
+
+  html += '<div class="sheetwrap"><table class="sheet"><thead><tr>' +
+    "<th>Journal</th><th>Posted</th><th class=\"num\">Read</th>" +
+    "<th class=\"num\">Reported</th><th>State</th></tr></thead><tbody>" +
+    rows.map(({ th }) => {
+      const st = journalState(th);
+      return "<tr><td class=\"wrap\">" +
+        (th.u ? '<a href="' + esc(th.u) + '" target="_blank" rel="noopener">' +
+                esc(th.t) + "</a>" : esc(th.t)) +
+        (st.note ? '<div class="when">' + esc(st.note) + "</div>" : "") +
+        '</td><td class="num">' + esc(th.p || "") + "</td>" +
+        '<td class="num">' + (th.n || 0).toLocaleString() + "</td>" +
+        '<td class="num">' + (th.r ? th.r.toLocaleString() : "") + "</td>" +
+        '<td><span class="badge ' + st.cls + '">' + st.label + "</span></td></tr>";
+    }).join("") + "</tbody></table></div>";
+
+  // Favourites recorded by the last sync that have not been archived yet, so
+  // the list says what is coming as well as what is here.
+  const queue = (D.queue || []).filter(q => (q.t || "").toLowerCase().includes(want));
+  if (queue.length) {
+    html += "<h2>Queued, not yet read <span class=\"count\">" + queue.length + "</span></h2>" +
+      '<div class="sheetwrap"><table class="sheet"><thead><tr><th>Journal</th>' +
+      "<th>Folder</th></tr></thead><tbody>" +
+      queue.map(q => "<tr><td class=\"wrap\">" +
+        (q.u ? '<a href="' + esc(q.u) + '" target="_blank" rel="noopener">' +
+               esc(q.t) + "</a>" : esc(q.t)) +
+        '</td><td>' + esc(q.f || "") + "</td></tr>").join("") +
+      "</tbody></table></div>";
+  }
+  return html;
+}
+
+// ---- test view -------------------------------------------------------------
+//
+// Every permission and every breeding, in order, so the parsers can be read
+// over rather than sampled. Only built into a test site (make_site.py --test):
+// it is a proofreading tool, not something a visitor wants.
+const TEST_PAGE = 25;
+let testPage = 0, testKind = "perms", testStatus = "";
+
+function testRows() {
+  const all = testKind === "perms"
+    ? D.perms.map((p, i) => ({ i, status: p.s, thread: p.t }))
+    : D.breedings.map((b, i) => ({ i, status: b.s, thread: b.t }));
+  return testStatus ? all.filter(r => r.status === testStatus) : all;
+}
+
+function testControls(total, shown) {
+  const kinds = [["perms", "Slot permissions"], ["breeds", "Breedings"]];
+  // Whichever statuses this build actually contains, so the filter never offers
+  // an empty one.
+  const seen = [...new Set((testKind === "perms" ? D.perms : D.breedings)
+    .map(x => x.s))].filter(Boolean).sort();
+  const pages = Math.max(1, Math.ceil(total / TEST_PAGE));
+  return '<div class="sheetbar">' +
+    kinds.map(([k, label]) =>
+      '<button class="cat" data-testkind="' + k + '" aria-pressed="' +
+      (testKind === k) + '">' + label + "</button>").join("") +
+    '<span style="width:14px"></span>' +
+    '<button class="cat" data-teststatus="" aria-pressed="' + (testStatus === "") +
+      '">any status</button>' +
+    seen.map(s => '<button class="cat" data-teststatus="' + esc(s) + '" aria-pressed="' +
+      (testStatus === s) + '">' + esc(s) + "</button>").join("") +
+    '<span class="grow"></span>' +
+    '<button class="cat" data-testpage="-1">&larr; back</button>' +
+    '<span class="ticks">page ' + (testPage + 1) + " of " + pages +
+      " &middot; " + total.toLocaleString() + " total</span>" +
+    '<button class="cat" data-testpage="1">next &rarr;</button>' +
+    "</div>";
+}
+
+function renderTest(filter) {
+  const want = (filter || "").trim().toLowerCase();
+  let rows = testRows();
+  if (want) {
+    // Free text over the stored summary, so a suspect phrase can be hunted for
+    // directly -- "all to shrine", "both used", a username.
+    rows = rows.filter(r => {
+      const x = testKind === "perms" ? D.perms[r.i] : D.breedings[r.i];
+      return textOf(testKind === "perms" ? "p" : "b", r.i).toLowerCase().includes(want)
+          || (D.users[x.a] || "").toLowerCase().includes(want);
+    });
+  }
+  const pages = Math.max(1, Math.ceil(rows.length / TEST_PAGE));
+  if (testPage >= pages) testPage = pages - 1;
+  if (testPage < 0) testPage = 0;
+  const slice = rows.slice(testPage * TEST_PAGE, (testPage + 1) * TEST_PAGE);
+  let html = testControls(rows.length, slice.length);
+  if (!slice.length) return html + '<p class="empty">Nothing matches.</p>';
+  // The real card renderers, so what is proofread is what the site shows.
+  html += slice.map(r => (testKind === "perms" ? permCard(r.i) : breedCard(r.i))).join("");
+  return html + testControls(rows.length, slice.length);
+}
+
+// ---- shareable links --------------------------------------------------------
+//
+// A search is worth sending to somebody: "here is what I mean" beats "search
+// for my name and click the third tab". The address bar is rewritten as you
+// go, without adding a history entry per keystroke, and read back on arrival
+// so a pasted link opens exactly what its sender was looking at.
+function shareState() {
+  const q = qEl.value.trim();
+  const params = new URLSearchParams();
+  if (mode !== "person") params.set("tab", mode);
+  if (q) params.set("q", q);
+  if (onlyOpen) params.set("open", "1");
+  if (layout === "sheet") params.set("view", "sheet");
+  if (mode === "owner" && ownerGrouping !== "tokota") params.set("by", ownerGrouping);
+  if (mode === "owner" && ownerPage) params.set("page", String(ownerPage + 1));
+  if (active.size !== CATEGORIES.length) params.set("show", [...active].join(","));
+  const query = params.toString();
+  const url = location.pathname + (query ? "?" + query : "");
+  history.replaceState(null, "", url);
+}
+
+function applyState() {
+  const params = new URLSearchParams(location.search);
+  // The older link shapes still work: ?person=Name and ?tokota=44808.
+  for (const [key, tab] of [["person", "person"], ["tokota", "tokota"], ["user", "person"]]) {
+    if (params.get(key)) { setMode(tab); qEl.value = params.get(key); return true; }
+  }
+  const tab = params.get("tab");
+  if (tab && MODES[tab]) setMode(tab);
+  if (params.get("q")) qEl.value = params.get("q");
+  if (params.get("open") === "1") onlyOpen = true;
+  if (params.get("view") === "sheet") layout = "sheet";
+  const by = params.get("by");
+  if (by === "journal") { ownerGrouping = "journal"; }
+  const page = parseInt(params.get("page") || "1", 10);
+  if (page > 1) ownerPage = page - 1;
+  const show = params.get("show");
+  if (show) {
+    const keys = show.split(",").filter(k => CATEGORIES.some(c => c.key === k));
+    if (keys.length) { active.clear(); for (const k of keys) active.add(k); }
+  }
+  return Boolean(tab || params.get("q"));
+}
+
+function render() {
+  if (!D) return;
+  const q = qEl.value.trim();
+  shareState();
+  if (mode === "test") { viewer = null; out.innerHTML = renderTest(q); return; }
+  if (mode === "owner") { viewer = q; renderOwner(q); return; }
+  // Cards read differently depending on whose records these are; only the
+  // person view has an answer to that.
+  viewer = mode === "person" ? q : null;
+  if (mode === "link") { out.innerHTML = renderByLink(q); return; }
+  if (mode === "covers") { out.innerHTML = renderCoverage(q); return; }
+  if (!q) { out.innerHTML = ""; return; }
+  if (mode === "person") return renderPerson(q);
+  return renderTokotas(q);
+}
+
+document.getElementById("f").addEventListener("submit", e => { e.preventDefault(); render(); });
+
+// The toggles are drawn with the results, so listen on the container.
+out.addEventListener("click", e => {
+  const ogBtn = e.target.closest("[data-ownergroup]");
+  if (ogBtn) { ownerGrouping = ogBtn.dataset.ownergroup; ownerPage = 0; render(); return; }
+  const opBtn = e.target.closest("[data-ownerpage]");
+  if (opBtn) { ownerPage += Number(opBtn.dataset.ownerpage); render(); return; }
+  const kindBtn = e.target.closest("[data-testkind]");
+  if (kindBtn) { testKind = kindBtn.dataset.testkind; testPage = 0; render(); return; }
+  const statusBtn = e.target.closest("[data-teststatus]");
+  if (statusBtn) { testStatus = statusBtn.dataset.teststatus; testPage = 0; render(); return; }
+  const pageBtn = e.target.closest("[data-testpage]");
+  if (pageBtn) { testPage += Number(pageBtn.dataset.testpage); render(); return; }
+  const diffBtn = e.target.closest("[data-diff]");
+  if (diffBtn) {
+    const want = diffBtn.dataset.diff;
+    if (want === "off") { diffAgainst = null; render(); return; }
+    // Kept as written: a version is "1" or "1.1", and Number() would turn
+    // "1.10" into 1.1 -- a different build, and the wrong file to fetch.
+    diffAgainst = want;
+    loadSnapshot(diffAgainst).then(() => render());
+    render();
+    return;
+  }
+  const layoutBtn = e.target.closest("[data-layout]");
+  if (layoutBtn) { layout = layoutBtn.dataset.layout; render(); return; }
+  const hideBtn = e.target.closest("[data-hidemigrated]");
+  if (hideBtn) { hideMigrated = !hideMigrated; render(); return; }
+  const csvBtn = e.target.closest("[data-csv]");
+  if (csvBtn) {
+    download(stamp(qEl.value.trim()) + ".csv", toCsv(sheetItems), "text/csv;charset=utf-8");
+    return;
+  }
+  const ticksBtn = e.target.closest("[data-ticks]");
+  if (ticksBtn) {
+    if (ticksBtn.dataset.ticks === "save") {
+      download(stamp(qEl.value.trim()) + "-ticks.json", marksJson(), "application/json");
+    } else {
+      // A file picker rather than a paste box: the backup is a file, and this
+      // is the one path back from a cleared browser.
+      const picker = document.createElement("input");
+      picker.type = "file";
+      picker.accept = "application/json,.json";
+      picker.addEventListener("change", () => {
+        const file = picker.files && picker.files[0];
+        if (!file) return;
+        file.text().then(text => {
+          const added = importMarks(text);
+          alert(added == null
+            ? "That file was not a tick backup."
+            : added + " tick" + (added === 1 ? "" : "s") + " restored.");
+          if (added != null) render();
+        });
+      });
+      picker.click();
+    }
+    return;
+  }
+  const toggle = e.target.closest("[data-openonly]");
+  if (toggle) { onlyOpen = !onlyOpen; render(); return; }
+  const button = e.target.closest("[data-cat]");
+  if (!button || button.disabled) return;
+  const key = button.dataset.cat;
+  // Never let all four go dark -- that reads as "no results" rather than
+  // "nothing selected", which is the confusing case.
+  if (active.has(key) && active.size > 1) active.delete(key);
+  else active.add(key);
+  render();
+});
+
+out.addEventListener("change", e => {
+  const box = e.target.closest("[data-mark]");
+  if (!box) return;
+  const id = box.dataset.mark;
+  if (box.checked) ticks.add(id); else ticks.delete(id);
+  saveMarks();
+  const row = box.closest("tr");
+  if (row) row.classList.toggle("migrated", box.checked);
+  const counter = document.querySelector(".sheetbar .ticks");
+  if (counter && sheetItems.length) {
+    const done = sheetItems.map(rowOf).filter(r => ticks.has(r.id)).length;
+    counter.textContent = done + " of " + sheetItems.length + " ticked";
+  }
+  // Only when the ticked rows are meant to vanish is a redraw the right call.
+  if (hideMigrated && box.checked) render();
+});
+
+fetch("slots.json").then(r => r.json()).then(data => {
+  D = data;
+  const openGenos = D.breedings.reduce(
+    (n, b) => n + (b.p || []).filter(p => p[1] === "held").length, 0);
+  document.getElementById("build").textContent = "v" + (D.v || "?");
+  document.title = "Tokota Breeding Records v" + (D.v || "?");
+  document.getElementById("built").textContent =
+    D.perms.length.toLocaleString() + " slot permissions and " +
+    D.breedings.length.toLocaleString() + " breedings (" + openGenos.toLocaleString() +
+    " genos never uploaded or shrined) across " + D.threads.length + " journals, covering " +
+    D.users.length.toLocaleString() + " people. Built " + D.built + ".";
+  // Not awaited: the page is usable without it, and re-renders when it lands.
+  // The second payload arrives in parts: the genotypes, the citations, and the
+  // replies split across however many files the build needed, because one file
+  // of replies would be over the 100 MB a GitHub repository accepts. Each part
+  // fills in what it carries and the page redraws, so a slow part delays only
+  // its own column. The build names the parts in the payload rather than the
+  // page listing them a second time -- a page that knew "replies-0" and
+  // "replies-1" would keep loading happily after the build split the replies
+  // three ways, just missing a third of them with nothing to show for it.
+  const parts = D.parts || [];
+  Promise.all(parts.map(name =>
+    fetch(name).then(r => r.json()).catch(() => ({}))
+  )).then(all => {
+    GENOS = {};
+    REPLIES = {};
+    CITES = [];
+    for (const part of all) {
+      if (part.g) Object.assign(GENOS, part.g);
+      if (part.r) Object.assign(REPLIES, part.r);
+      if (part.c) CITES = CITES.concat(part.c);
+      if (part.x) TEXTS = Object.assign(TEXTS || {}, part.x);
+      if (part.shrine) SHRINE = Object.assign(SHRINE || {}, part.shrine);
+    }
+    if (out.innerHTML) render();
+  });
+
+  // Which earlier builds are available to compare against.
+  loadHistory().then(h => {
+    if ((h.versions || []).length > 1 && out.innerHTML) render();
+  });
+
+  if (D.test) document.getElementById("t-test").hidden = false;
+
+  if (applyState()) render();
+}).catch(() => {
+  out.innerHTML = '<p class="empty">Could not load slots.json. This page must be served, ' +
+    "not opened directly &mdash; browsers block local file reads. Run " +
+    "<code>python -m http.server -d . 8000 --bind 127.0.0.1</code> in this folder, " +
+    "then open http://localhost:8000/</p>";
+});
+</script>
+</body>
+</html>
